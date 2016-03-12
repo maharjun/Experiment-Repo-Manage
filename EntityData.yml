@@ -1,0 +1,6 @@
+EntityData:
+
+- ID      : '00000000000000000000000000000001'
+  ParentID: '00000000000000000000000000000000'
+  Type    : IntermediateDir
+  Path    : ''
