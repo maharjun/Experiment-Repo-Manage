@@ -1,5 +1,4 @@
 import yaml
-import re
 
 YAMLKey_SpaceRepString = '`!#'
 
@@ -7,16 +6,16 @@ class ExpRepoEntity:
     def __init__(self, ID=None, ParentID=None, Type=None, Path=None):
         
         if ID.__class__ == str:
-            self.ID = long(ID,16)
-        elif ID.__class__ == int or ID.__class__ == long:
-            self.ID = long(ID)
+            self.ID = int(ID,16)
+        elif ID.__class__ == int:
+            self.ID = int(ID)
         else:
             self.ID = None
         
         if ParentID.__class__ == str:
-            self.ParentID = long(ParentID,16)
-        elif ParentID.__class__ == int or ParentID.__class__ == long:
-            self.ParentID = long(ParentID)
+            self.ParentID = int(ParentID,16)
+        elif ParentID.__class__ == int:
+            self.ParentID = int(ParentID)
         else:
             self.ParentID = None
         
@@ -28,9 +27,6 @@ class ExpRepoEntity:
     def __int__(self):
         return int(self.data)
 
-    def __long__(self):
-        return long(self.data)
-
     def __str__(self):
         return (
             "ID      : {0:0{1}x}\n".format(self.ID      , 32) +
@@ -38,6 +34,7 @@ class ExpRepoEntity:
             "Type    : {0}\n".format(self.Type) +
             "Path    : {0}\n".format(self.Path)
         )
+
 
 def ExpRepoEntity_representer(dumper, Entity, rep_str="`!#"):
     ExpRepoEntityMembs = []
@@ -58,14 +55,17 @@ def ExpRepoEntity_representer(dumper, Entity, rep_str="`!#"):
 #     # .items() convers aligned into a list of tuples in the order of insertion
 #     return dumper.represent_mapping('tag:yaml.org,2002:map', aligned.items())
 
+
 def str_presenter(dumper, data):
     if len(data.splitlines()) > 1:  # check for multiline string
         return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
     return dumper.represent_scalar('tag:yaml.org,2002:str', data)
 
+
 yaml.add_representer(str, str_presenter)
 yaml.add_representer(ExpRepoEntity, lambda dumper,Entity: ExpRepoEntity_representer(dumper,Entity,YAMLKey_SpaceRepString))
 # yaml.add_representer(dict,lambda dumper,data: dict_representer(dumper,data,YAMLKey_SpaceRepString))
+
 
 def PrettyYAMLDump(data, stream=None):
     YamlDump = yaml.dump(data, default_flow_style=False)

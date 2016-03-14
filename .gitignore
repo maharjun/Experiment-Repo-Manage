@@ -48,5 +48,11 @@ Temporary Items
 /**/*.pyo
 /**/untitled*
 
+# ignore all visual studio files
+/**/*.sln
+/**/*.*proj
+
+# ignore the Visual studio directory
+/.vs/*
 # ignore all ~version of word documents
 *~*.*

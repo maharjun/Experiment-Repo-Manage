@@ -1,4 +1,5 @@
-import yaml;
+import yaml
+
 with open('RSAKeys.yml', 'r') as Fin:
     KeyData = yaml.safe_load(Fin)
     PublicExp     = KeyData['e']
@@ -10,4 +11,3 @@ def RSAEncode(InputInteger):
 
 def RSADecode(InputInteger):
     return pow(InputInteger, PrivateExp, PublicModulus)
-
