@@ -746,36 +746,127 @@ def GetCommitMessage(NewUIDDataWithID):
     return OutputStr
 
 
-def CommitandPush(CommitMessage):
+def PrepareStage():
+
+    CurrDir = os.getcwd()
+    ScriptDir = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(ScriptDir)
+
+    # Then rename EntityData.yml temporarily
+    if os.path.isfile('EntityData.ymlorig'):
+        os.remove('EntityData.ymlorig')
+    os.rename('EntityData.yml', 'EntityData.ymlorig')
+    
+    # checkout EntityData.yml from head and reset it from index
+    CurrentRepo = Repo('.')
+    CurrentHead = CurrentRepo.head
+    CurrentHead.reset('HEAD',"-- EntityData.yml")
+    CurrentRepo.git.checkout("HEAD", "EntityData.yml")
+
+    os.chdir(CurrDir)
+
+
+def RollBackStage():
+    # Then rename EntityData.yml temporarily
+    if os.path.isfile('EntityData.yml'):
+        os.remove('EntityData.yml')
+    if os.path.isfile('EntityData.ymlorig'):
+        os.rename('EntityData.ymlorig', 'EntityData.yml')
+    
+
+def ValidateStage():
+    StageValid = False
+    
+    # check if the current working directory is not dirty
+    ScriptDir = os.path.dirname(os.path.realpath(__file__))
+    ScriptRepo = Repo(ScriptDir)
+    StageValid = not ScriptRepo.is_dirty()
+
+    return StageValid
+
+
+def CheckoutandPull():
     CurrDir = os.getcwd()
     ScriptDir = os.path.dirname(os.path.realpath(__file__))
 
     os.chdir(ScriptDir)
 
     RepoMngmtRepo = Repo(os.getcwd())
-    RepoMngmtRepo.git.checkout('master')
-    CurrentIndex = RepoMngmtRepo.index
-    CurrentIndex.add(['EntityData.yml'])
-    CurrentIndex.commit(CommitMessage)
-
-    
     origin = RepoMngmtRepo.remote('origin')
-    MasterRetList = origin.push('master:master')
-    
-    isSuccess = False
-    if not MasterRetList or (MasterRetList[0].flags & remote.PushInfo.ERROR):
-        print("The Push was unsuccessful. This could possibly also be due to a network error. \n"
-              "If not then we need to rebase and try again. The current commit will be rolled \n"
-              "back.")
-        git.refs.head.HEAD(RepoMngmtRepo, path='HEAD').reset('HEAD~1')    
-    elif MasterRetList[0].flags & remote.PushInfo.FAST_FORWARD:
-        print("Fast Forward Merge was successful\n")
-        isSuccess = True
-    else:
-        print("Wierd shits goin down")
-        RepoMngmtRepo.heads.master.reset('HEAD~1')  
-        isSuccess = False
 
+    CheckoutSuccess = False
+    PullSuccess = False
+    
+    # attempt to checkout to master. This should
+    # succeed if clean
+    try:
+        RepoMngmtRepo.git.checkout('master')
+        CheckoutSuccess = True
+    except git.exc.GitCommandError as GitError:
+        print(GitError.stderr.decode('utf-8'))
+        CheckoutSuccess = False
+
+    if CheckoutSuccess:
+        # Pull changes into master. This will be success
+        PullResult = origin.pull('master:master')
+        if not PullResult or PullResult[0].flags & PullResult[0].ERROR:
+            print("origin/master could not be successfully pulled")
+        elif PullResult and \
+            PullResult[0].flags & (PullResult[0].FAST_FORWARD | PullResult[0].HEAD_UPTODATE):
+            PullSuccess = True
+
+    os.chdir(CurrDir)
+    return PullSuccess
+
+
+def CommitandPush(CommitMessage):
+    # Assumes that the branch is already checked into master
+    # and that the changes have been pulled
+    # And that the required EntityData.yml has been edited
+    # in the working tree
+
+    CurrDir = os.getcwd()
+    ScriptDir = os.path.dirname(os.path.realpath(__file__))
+
+    os.chdir(ScriptDir)
+
+    RepoMngmtRepo = Repo(os.getcwd())
+    origin = RepoMngmtRepo.remote('origin')
+
+    PushSuccess = False
+    isSuccess = False
+        
+    # attempt to add EntityData.yml This step may lead to
+    # dragons if EntityData.yml has been edited manually
+    # and does not exist
+    
+    CurrentIndex = RepoMngmtRepo.index
+    try:
+        CurrentIndex.add(['EntityData.yml'])
+        DataAdditionSuccess = True
+    except OSError:
+        print("The addition of EntityData.yml to index was unsuccessful. This is likely becau"
+              "se the file does not exist. This is an undefined state. In this case, your bes"
+              "t option would be to checkout the file from the latest commit and try again\n")
+        DataAdditionSuccess = False
+
+    if DataAdditionSuccess:
+        # Commit and Push
+        CurrentIndex.commit(CommitMessage)  # Im assuming that this NEVER fails
+        MasterRetList = origin.push('master:master')
+        if not MasterRetList or (MasterRetList[0].flags & remote.PushInfo.ERROR):
+            print("The Push was unsuccessful. This is possibly due to the current branch not being\n"
+                  "downstream of the remote branch. In this case, simply try again.  This could\n"
+                  "possibly also be due to a network error. The current commit will be rolled back.\n")
+            git.refs.head.HEAD(RepoMngmtRepo, path='HEAD').reset('HEAD~1')
+        elif MasterRetList[0].flags & remote.PushInfo.FAST_FORWARD:
+            print("Fast Forward Merge was successful\n")
+            PushSuccess = True
+        else:
+            print("Wierd shits goin down")
+            RepoMngmtRepo.heads.master.reset('HEAD~1')
+
+    isSuccess = PushSuccess
     os.chdir(CurrDir)
     return isSuccess
 
@@ -785,6 +876,10 @@ def ConfirmBookingsPrompt():
     global CurrentEntityData
     global NewEntityData
 
+    StageisClean = False
+    PullSuccess = False
+    CnPSuccess = False
+    
     # First, assign UIDs to the bookings
     NewEntitiesWithUID = AssignUIDs()
     NewEntitiesAppended = CurrentEntityData + NewEntitiesWithUID
@@ -795,32 +890,39 @@ def ConfirmBookingsPrompt():
     ScriptDir = os.path.dirname(os.path.realpath(__file__))
     os.chdir(ScriptDir)
 
-    # Then rewrite EntityData.yml temporarily
-    if os.path.isfile('EntityData.ymlorig'):
-        os.remove('EntityData.ymlorig')
-    os.rename('EntityData.yml', 'EntityData.ymlorig')
-    # Then flush data to temp EntityData.yml
-    with open('EntityData.yml', 'w') as Fout:
-        FlushEntityData(Stream=Fout, CurrentEntData=NewEntitiesAppended, NewEntData=[])
-
-    # Attempt Commit and push
-    CommitMessage = GetCommitMessage(NewEntitiesWithUID)
-    CnPSuccess = CommitandPush(CommitMessage)
-    if CnPSuccess:
-        print("The following bookings are confirmed:\n")
-        print(CommitMessage)
-        os.remove('EntityData.ymlorig')
-        CurrentEntityData = NewEntitiesAppended
-        NewEntityData = []
-        Status = PromptStatus.SUCCESS
+    PrepareStage()
+    StageisClean = ValidateStage()
+    if not StageisClean:
+        print("The working directory cannot have uncommitted changes. This will potentially cause issues\n"
+              "with pulling and checkouts. Please reset/commit all changes except to EntityData.yml/ymlorig\n")
+        RollBackStage()
     else:
-        print("The Given Bookings could not be confirmed:\n")
-        os.remove('EntityData.yml')
-        os.rename('EntityData.ymlorig', 'EntityData.yml')
-        Status = PromptStatus.ITER_OVER
+        # attempt checkout and pull
+        PullSuccess = CheckoutandPull()
 
-    os.chdir(CurrentDir)
-    return Status
+    if PullSuccess:
+        # Then rewrite EntityData.yml
+        with open('EntityData.yml', 'w') as Fout:
+            FlushEntityData(Stream=Fout, CurrentEntData=NewEntitiesAppended, NewEntData=[])
+
+        # Attempt Commit and push
+        CommitMessage = GetCommitMessage(NewEntitiesWithUID)
+        CnPSuccess = CommitandPush(CommitMessage)
+        
+        if CnPSuccess:
+            print("The following bookings are confirmed:\n")
+            print(CommitMessage)
+            os.remove('EntityData.ymlorig')
+            CurrentEntityData = NewEntitiesAppended
+            NewEntityData = []
+            Status = PromptStatus.SUCCESS
+        else:
+            print("The Given Bookings could not be confirmed:\n")
+            RollBackStage()
+            Status = PromptStatus.ITER_OVER
+
+            os.chdir(CurrentDir)
+            return Status
 
 
 def ExitPrompt():
