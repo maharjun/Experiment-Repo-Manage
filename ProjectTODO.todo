@@ -1,0 +1,129 @@
+RepoManagement Project:
+
+  Things done:
+  
+    ✔ book seems to be doing fine. (debugging left) @done (16-04-18 19:36)
+    ✔ unbook seems to be doing fine. (debugging left) @done (16-04-18 19:36)
+    ✔ flush seems to be doing just fine. (debugging left) @done (16-04-18 19:36)
+    ✔ exit is fine. @done (16-04-18 19:36)
+    ✔ list is fine. @done (16-04-18 19:36)
+    ✔ The Yaml Formatting of outputs are done. @done (16-04-18 19:36)
+    ✔ The preloop processing is complete. @done (16-04-18 19:36)
+    ✔ Need to make PromptStatus a part of RepoManagementConsole @done (16-04-18 19:39)
+    ✔ Need to remove unnecessary functions. @done (16-04-18 19:39)
+    ✔ Need to take into account that CurrentSession is a part of the TempFiles folder inside RepoManagement @done (16-04-18 19:39)
+    ✔ Correct Empty Input Situation @critical @done (16-04-20 02:47)
+        Need to ensure that the previous command is not
+        repeated in the command prompt when an empty input
+        is received
+    ✔ Rewrite folder regexp @critical @done (16-04-20 03:05)
+        Rewrite folder regexp to process folderwise rather
+        than character-wise.
+    ✔ Write default command processor @high @done (16-04-20 03:28)
+        Upon entering an incorrect command, users need to be
+        redirect to help.
+
+  Things that need to be done.:
+  
+    ✔ Perform Testing and Debugging @critical (16-04-20 04:40)
+      ✔ Test emptyline function @done (16-04-20 04:01)
+      ✔ Test default handling function @done (16-04-20 04:01)
+      ✔ Test new regex @done (16-04-20 04:01)
+      ✔ Perform a comprehensive unit test. @done (16-04-20 04:28)
+          Test for the book, unbook, clear functions
+      ✔ tested committing procedure: @done (16-04-26 01:39)
+          Performed Unit Test involving the committing procedure.
+    ✔ Complete Procedure for committing @critical @done (16-04-25 03:54)
+      ✔ Finalize format of the explog and folderlog files @done (16-04-21 04:42)
+      ✔ Outline the algorithm for committing @done (16-04-21 04:43)
+        ✔ List necessary conditions @done (16-04-21 04:09)
+      ✔ Create functions that validate above conditions @done (16-04-21 04:09)
+      ✔ Create functions that prepare the tree to be committed  @done (16-04-25 03:54)
+        ✔ Function to get explog entry @done (16-04-24 18:40)
+        ✔ Function to get folderlog entry @done (16-04-24 18:40)
+        ✔ Function to Create Experiment Entries @done (16-04-24 18:55)
+        ✔ Function to create folders and folderlog.yml files @done (16-04-24 18:55)
+        ✔ Parent Function to setup tree from EntityData @done (16-04-25 03:54)
+            *- Assume that EntityData is upto date with    -*
+            *- EntityData.yml. This is to be ensured later -*
+            
+            Check validity of all entities booked i.e. ensure
+            that all directories booked are infact new direc-
+            tories
+
+            Assign IDs
+            Sort Entities. for each set of entities,
+            get the corresponding string and update file
+      ✔ Create Function to commit and push above tree @done (16-04-25 03:54)
+
+    ☐ Perform Commit:
+      ☐ Check space at beginning of BasicUtils.py
+      ☐ Write Commit Message
+    ☐ Complete procedure for editing existing entries.
+      ☐ Figure out text editor use:
+          Figure out how to use a text editor to get the input text
+      ☐ Write code to list out the experiments in the 
+    
+    ☐ Write Doc String for getTreeFromNewEntities
+
+    ☐ Convert all TopDir Parameters to ExpRepo Parameters
+
+    ☐ Validate Parent Directory @low
+        Need to ensure that the parent directory is a repos-
+        itory
+
+    ☐ Validate --n argument. @low
+        Validate (limit) the input number given to while booking 
+        experiments. ALso ensure that in a particular session,
+        the experiment count is bounded
+
+    ☐ Program Restart command. @critical
+        restart command saves work and performs initialization
+        again as though we have stopped and started the console.
+        This is useful when one wishes to update the EntityData
+        after pulling from origin/master
+
+    ☐ Ensure that EntityData is upto date @low
+        Ensure that EntityData is upto date with EntityData.yml.
+        This is to be done by veryfying that the date/time last
+        modified is earlier than the read time. create a function
+        for the same
+
+  Tests:
+
+  ☐ Without EntityData.yml
+  In the absence of EntityData.yml, the function successfully returns an error and exits without saving data
+ 
+
+--- ✄ -----------------------
+
+EE 605 Studying:
+
+  ☐ Read up on machine learning sheet
+    ✔ Read up on growth function calculation and VC dimension calculation @done (16-04-19 01:25)
+    - Read up on the following ML algos:
+    ✔ linear regression @done (16-04-19 03:41)
+    - logistic regression
+    - SVM
+  ☐ Create Formula Sheet:
+    ✔ Optimal Wiener Filter derivation and Formula @done (16-04-19 02:39)
+    ✔ Approximations / Adaptive filtering (via) LMS / RLS  @done (16-04-19 02:39)
+      ✔ Sliding Window @done (16-04-19 02:40)
+      ✔ Exponential Weighting @done (16-04-19 02:40)
+    ✔ Lattice filters @done (16-04-19 03:31)
+      ✔ Recursive formula @done (16-04-19 03:31)
+      ✔ Stability criterion @done (16-04-19 03:31)
+    ✔ IIR Filters @done (16-04-19 05:15)
+      ✔ Optimum causal and non-causal filters @done (16-04-19 04:43)
+      ✔ IIR Adaptive filtering algorithm @done (16-04-19 05:14)
+    ✔ Kalman Filtering @done (16-04-20 03:23)
+      ✔ Theory and derivation @done (16-04-20 03:23)
+      ✔ Recursion formulas @done (16-04-19 04:07)
+  ✔ Go Through previous Endsem paper: @done (16-04-19 06:01)
+
+Random Long term shit:
+
+  ✔ Lookup PlainNotes @high @done (16-04-19 03:41)
+  ☐ Lookup the Ethiopian amharic sound Q @low
+  ✘ lookup Ansible @low @cancelled (16-04-19 03:43)
+  ☐ LookupTesting and debugging gyan @high

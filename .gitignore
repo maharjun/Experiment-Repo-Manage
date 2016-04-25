@@ -54,5 +54,12 @@ Temporary Items
 
 # ignore the Visual studio directory
 /.vs/*
+
+# ignore files in TempFiles directory
+/TempFiles
+
+# ignore file used to store temporary code
+/TempCode.py
+
 # ignore all ~version of word documents
 *~*.*
