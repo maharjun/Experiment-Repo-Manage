@@ -1,3 +1,9 @@
+## ImportantRandom Info
+
+To enable stdout redirection in windows, must set some registry key. 
+
+http://stackoverflow.com/questions/3018848/cannot-redirect-output-when-i-run-python-script-on-windows-using-just-scripts-n
+
 ##  Algo for readme generations for experiment readme.
 
 ###   Format of explog.yml .
@@ -47,9 +53,9 @@ FolderDescription: |
   (You can use Markdown level-3 header onwards).
 ```
 
-### Committing Algo
+###   Committing Algo
 
-#### Prerequisites
+####    Prerequisites
 
 One MUST be on an UPDATED master branch (there will be no pull attempted by the program itself, this is because there is a potential for conflicts in the session. i.e. it is possible that the folder you are booking, which is new in the current directory, is already booked in the main repository). 
 
@@ -61,7 +67,7 @@ Will try to ease this later)
 Before the commit procedure, there must be no changes in the working tree / index. (i.e. you would be advised to run reset --hard before you perform bookings in case you have some other changes pending.)
 
 
-###   High level Algo
+####    High level Algo
 
     Initialize EntityList from Entities.yml file in RepoManagement
     
@@ -89,3 +95,13 @@ Before the commit procedure, there must be no changes in the working tree / inde
                 read explog.yml into ExpList
             else,
                 ExpList = []
+
+
+###   Editing Algos:
+
+Various features required:
+
+Ability to browse through experiments:
+
+1.  Ability to list IDs and Titles of all experiments in a folder.
+2.  Ability to get the text of a particular experiment and transfer it to a file

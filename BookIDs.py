@@ -1,16 +1,13 @@
-﻿import os
+import os
 from os import path
 import re
 import Entities
 import yaml
 import textwrap
 import copy
-from git import Repo, remote
+from BasicUtils import errprint
+from git import remote
 from collections import Counter
-
-
-def debug_print(PrintString):
-    print(PrintString)
 
 
 def UnBookEntity(Entities2Unbook, NewEntityData):
@@ -32,7 +29,7 @@ def UnBookEntity(Entities2Unbook, NewEntityData):
             Entity.Path = '$null'
     
     for EntityInfo in sorted(Entities2Unbook.elements()):
-        print("('{0}', '{1}') does not correspond to any remaining booked entity.".format(EntityInfo[0], EntityInfo[1]))
+        errprint("('{0}', '{1}') does not correspond to any remaining booked entity.".format(EntityInfo[0], EntityInfo[1]))
     
     # recreate array by mutating object instead of creating a new object
     # observe the [:]
@@ -60,12 +57,10 @@ def BookDirectory(Path, Type,
     if ExistingDir:
         # If Directory has already been assigned UID
         ExistingDir = ExistingDir[0]
-        UIDString = "{uid:0{len}x}".format(ExistingDir.ID, 32) if ExistingDir.ID else "UnConfirmed"
-        
-        print((
+        errprint((
             "The directory '{DirPath}' has already been booked\n"
-            "   UID : {UIDStr}"
-        ).format(DirPath=Path, UIDStr=UIDString))
+            "   UID : {UID}"
+        ).format(DirPath=Path, UID=ExistingDir.ID))
     else:
         # if the parent directory is not the Top Directory
         #   check if the UID for the parent has been assigned and act
@@ -80,7 +75,7 @@ def BookDirectory(Path, Type,
         
         if not ExistingParentDir:
             if not Force:
-                print((
+                errprint((
                     "The Parent directory '{ParDirPath}' has not been"    "\n"
                     "booked. use Force=True in order to book an"  "\n"
                     "ID for the Parent Directory itself"
@@ -93,7 +88,7 @@ def BookDirectory(Path, Type,
         else:
             ExistingParentDir = ExistingParentDir[0]
             if ExistingParentDir.Type == 'ExperimentDir':
-                print((
+                errprint((
                     "The Parent directory '{ParDirPath}' has been booked" "\n"
                     "as an experiment directory. Hence you cannot book a" "\n"
                     "subdirectory."
@@ -107,10 +102,11 @@ def BookDirectory(Path, Type,
             PathBaseName = path.basename(Path)
             isNameValid = True
             if re.match(r"^[a-zA-Z]((\w|\-)(?!$))*[a-zA-z0-9]?$", PathBaseName) is None:
-                print(("The Directory Name {0} is not a valid name.\n"
-                       "A valid Name must start with an alphabet,\n"
-                       "contain only the characters [-_a-zA-Z0-9],\n"
-                       "and end with an alphanumeric character").format(PathBaseName))
+                errprint((
+                    "The Directory Name {0} is not a valid name. A valid Name must start\n"
+                    "with an alphabet, contain only the characters [-_a-zA-Z0-9], and\n"
+                    "end with an alphanumeric character"
+                ).format(PathBaseName))
                 isNameValid = False
             
             # In add the given path and entity into the NewEntityData
@@ -135,7 +131,7 @@ def UnBookDirectory(Path, NewEntityData, Force=False):
     CurrPathEntities = [Entity for Entity in NewEntityData if isAnc(Path, Entity.Path)]
     
     if len(CurrPathEntities) > 1 and not Force:
-            print((
+            errprint((
                 "The Specified directory '{ParDirPath}' has children"     "\n"
                 "that have been assigned a UID. use Force=True in order"  "\n"
                 "to un-book the directory and all its children/subdirs"
@@ -145,7 +141,7 @@ def UnBookDirectory(Path, NewEntityData, Force=False):
         UnBookEntity(CurrPathEntities, NewEntityData)
         UnbookStatus = 1
     else:
-        print((
+        errprint((
                 "The Specified directory '{ParDirPath}' has not been"     "\n"
                 "booked in this session"                                  "\n"
         ).format(ParDirPath=Path))
@@ -173,7 +169,7 @@ def UnBookExperiments(Path, NewEntityData, NumofExps=None):
         UnBookEntity(CurrPathExps[0:NumofExps], NewEntityData)
         DeleteStatus = 1
     else:
-        print((
+        errprint((
             "The given path has either not been booked, or has no experiments" "\n"
             "booked under it." "\n"
         ).format(NumofExps, len(CurrPathExps)))
@@ -196,7 +192,7 @@ def BookExperiments(Path, NewEntityData, CurrentEntityData,
     
     if not ExistingDir:
         if not Force:
-            print((
+            errprint((
                 "The containing directory '{ContDirPath}' has not been "
                 "assigned a UID. use Force=True in order to book an "
                 "ID for the Parent Directory itself"
@@ -208,7 +204,7 @@ def BookExperiments(Path, NewEntityData, CurrentEntityData,
     else:
         ExistingDir = ExistingDir[0]
         if ExistingDir.Type == 'IntermediateDir':
-            print((
+            errprint((
                 "The containing directory '{ContDirPath}' has been booked" "\n"
                 "as an intermediate directory. Hence you cannot book experiments" "\n"
                 "directly under this directory"
@@ -477,11 +473,11 @@ def CreateExperiments(NewEntityList, ExperimentRepo):
     if len(UniquePaths) == 1:
         ExpLogPath = path.join(TopDir, UniquePaths.pop())
     else:
-        print("\nAll Entities given to CreateExperiments(...) must correspond to the same Path")
+        errprint("\nAll Entities given to CreateExperiments(...) must correspond to the same Path")
         raise ValueError
     UniqueTypes = {Ent.Type for Ent in NewEntityList}
     if len(UniqueTypes) != 1 or UniqueTypes.pop() != 'Experiment':
-        print("\nAll Entities given to CreateExperiments(...) must have Type == 'Experiment'.")
+        errprint("\nAll Entities given to CreateExperiments(...) must have Type == 'Experiment'.")
         raise ValueError
 
     # Ensure Condition 2. (Existence of explog.yml Path)
@@ -489,7 +485,7 @@ def CreateExperiments(NewEntityList, ExperimentRepo):
     FilePath = path.join(ExpLogPath, "explog.yml")
     FileExists = path.isfile(path.join(ExpLogPath, "explog.yml"))
     if not FileExists:
-        print(
+        errprint(
             "\nThe path into which the experiment entries are to be inserted either does not\n"
             "exist, or does not contain explog.yml.")
         raise ValueError
@@ -500,9 +496,9 @@ def CreateExperiments(NewEntityList, ExperimentRepo):
     # Here we read explog.yml, modify the EntityCount to create PrevText
     with open(FilePath) as CurrentExplogFin:
         PrevText = CurrentExplogFin.read()
-    CurrentExpCount = int(re.match("(?<=NumberofEntries: )[0-9]+").group())
+    CurrentExpCount = int(re.match(r".*\nNumberofEntries: ([0-9]+)", PrevText).group(1))
     NewExpCount = CurrentExpCount + len(NewEntityList)
-    PrevText = re.sub("(?<=NumberofEntries: )[0-9]+", NewExpCount, PrevText, count=1)
+    PrevText = re.sub("(?<=NumberofEntries: )[0-9]+", str(NewExpCount), PrevText, count=1)
 
     # Now get the text corresponding to all the New entries
     NewEntries = [getExplogEntry(Ent) for Ent in NewEntityList]
@@ -515,7 +511,6 @@ def CreateExperiments(NewEntityList, ExperimentRepo):
         NewExplogFout.write(NewText)
 
     # add to index
-    ExperimentRepo = Repo(ExperimentRepo)
     ExperimentRepo.index.add([FilePath])
 
 
@@ -537,7 +532,7 @@ def CreateDirectory(NewEntity, ExperimentRepo):
 
     # Ensuring Condition 1. (Validity of Entity Type)
     if NewEntity.Type not in ['IntermediateDir', 'ExperimentDir']:
-        print(
+        errprint(
             "\nThe type of the entity given as argument to CreateDirectory(...) must be of\n"
             "directory type i.e. Type == 'IntermediateDir' or 'ExperimentDir'")
         raise ValueError
@@ -547,7 +542,7 @@ def CreateDirectory(NewEntity, ExperimentRepo):
     ParentDirPath = path.dirname(FullPath)
     FolderLogPath = path.join(FullPath, 'folderlog.yml')
     if not path.isfile(path.join(ParentDirPath, 'folderlog.yml')):
-        print(textwrap.dedent(
+        errprint(textwrap.dedent(
             """
             The Parent Directory of the Dir that you are booking does not seem to
             have been validly created. Either It doesnt exist or doesnt contain a
@@ -559,7 +554,7 @@ def CreateDirectory(NewEntity, ExperimentRepo):
     
     # Ensuring Condition 3. (Unbookedness of Path)
     if path.isfile(FolderLogPath):
-        print(textwrap.dedent(
+        errprint(textwrap.dedent(
             """
             The Directory that you are booking already seems to exist and
             contain folderlog.yml indicating that it has been booked. This should
@@ -672,7 +667,7 @@ def PrepareTreeandIndex(CurrentEntityData, NewEntityDataWithID, ExperimentRepo):
             FlushData(Fout, NewEntitiesAppended)
         ExperimentRepo.index.add(['EntityData.yml'])
     except:
-        print("\nEntity Creation Failed.")
+        errprint("\nEntity Creation Failed.")
         raise
 
 
@@ -682,7 +677,7 @@ def ValidateStage(ExperimentRepo):
     # check if current branch is master branch
     CurrentBranch = ExperimentRepo.active_branch
     if CurrentBranch.name != 'master':
-        print("HEAD must be master")
+        errprint("HEAD must be master")
         StageValid = False
 
     # check if current branch is up-to-date
@@ -690,7 +685,7 @@ def ValidateStage(ExperimentRepo):
         Origin = ExperimentRepo.remote("origin")
         FetchStatus = Origin.fetch()  # it is expected that this doesnt return an error.
         if FetchStatus[0].flags & remote.FetchInfo.ERROR:
-            print(
+            errprint(
                 "\n"
                 "Fetch could not be performed. This is likely an issue with the internet\n"
                 "connection. Enable internet connection and then run the command again.")
@@ -698,7 +693,7 @@ def ValidateStage(ExperimentRepo):
 
     if StageValid:
         if Origin.refs["master"].commit != CurrentBranch.commit:
-            print(
+            errprint(
                 "\n"
                 "The master is either ahead or behind origin/master. Do ensure that this\n"
                 "is not the case. Either pull or push master to acheive the same. Note that\n"
@@ -728,7 +723,7 @@ def ValidateStage(ExperimentRepo):
 
         DirectoryIsClean = isClean(ExperimentRepo)
         if not DirectoryIsClean:
-            print(textwrap.dedent("""
+            errprint(textwrap.dedent("""
                 There appears to be changes in either the index or working
                 directory, this is not allowed. perform hard reset i.e.
                 
@@ -754,15 +749,17 @@ def CommitandPush(CommitMessage, ExperimentRepo):
     # and Push
     MasterRetList = ExperimentRepo.remote('origin').push('master:master')
     if not MasterRetList or (MasterRetList[0].flags & remote.PushInfo.ERROR):
-        print("The Push was unsuccessful. This is possibly due to the current branch not being\n"
-              "downstream of the remote branch. In this case, simply try again.  This could\n"
-              "possibly also be due to a network error. The current commit will be rolled back.\n")
+        errprint(
+            "The Push was unsuccessful. This is possibly due to the current branch not being\n"
+            "downstream of the remote branch. In this case, simply try again.  This could\n"
+            "possibly also be due to a network error. The current commit will be rolled back.\n"
+        )
         ExperimentRepo.heads.master.reset('HEAD~1')
     elif MasterRetList[0].flags & remote.PushInfo.FAST_FORWARD:
         print("Fast Forward Merge was successful\n")
         PushSuccess = True
     else:
-        print("Wierd shits goin down")
+        errprint("Wierd shits goin down")
         ExperimentRepo.heads.master.reset('HEAD~1')
     
     isSuccess = PushSuccess
@@ -789,7 +786,7 @@ def ConfirmBookings(CurrentEntityData, NewEntityData, ExperimentRepo):
         try:
             PrepareTreeandIndex(CurrentEntityData, NewEntitiesWithUID, ExperimentRepo)
         except:
-            print("\nFailed To prepare working directory for commit.")
+            errprint("\nFailed To prepare working directory for commit.")
             isSuccess = False
             ResetNeeded = True
 
@@ -801,11 +798,14 @@ def ConfirmBookings(CurrentEntityData, NewEntityData, ExperimentRepo):
             ResetNeeded = True
 
     if not isSuccess:
-        print("\nConfirmation of Bookings Failed.")
+        errprint("\nConfirmation of Bookings Failed.")
         if ResetNeeded:
-            print("\nPerforming Hard reset.")
+            errprint("\nPerforming Hard reset.")
             ExperimentRepo.head.reset(working_tree=True)
-            print("\nReset Complete.")
+            errprint("\nReset Complete.")
+    else:
+        print("\nConfirmation of Bookings successful:")
+        print("\n" + CommitMessage)
 
     return isSuccess
 
@@ -820,7 +820,6 @@ def getTopLevelExpDir():
     PrevDirwasRoot = False
     TopDir = ''
     while (not PrevDirwasRoot):
-        print("CurrDir: {CurrDir}".format(CurrDir=CurrDir))
         if path.isfile(path.join(CurrDir, 'EXP_TOP_LEVEL_DIR.indic')):
             TopDir = CurrDir
             break
@@ -829,7 +828,7 @@ def getTopLevelExpDir():
         PrevDirwasRoot = (NewDir == CurrDir)
         CurrDir = NewDir
     else:
-        print(
+        errprint(
             "The current working directory '{CWD}' is not inside the"
             " experiment repository and hence the top directory of the"
             " Experiment repository cannot be calculated")
@@ -861,7 +860,7 @@ def getEntityDataFromStream(Stream):
             EntityList = []
     else:
         # Complain about invalid data file
-        print(textwrap.dedent("""\
+        errprint(textwrap.dedent("""\
             The file containing Entity Data is invalid. The file must be as follows
             (file content is indented 4 spaces):
                 

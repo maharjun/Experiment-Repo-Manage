@@ -1,13 +1,13 @@
-﻿from cmd import Cmd
+from cmd import Cmd
 import os
 import shlex
 import re
 import textwrap
 import BasicUtils as BU
+from BasicUtils import errprint
 from git import Repo
 from enum import Enum
 import BookIDs
-import git
 
 
 class PromptStatus(Enum):
@@ -92,7 +92,7 @@ class RepoManageConsole(Cmd):
         Args = shlex.split(arg)
         
         if not Args:
-            print("You must enter atleast 2 arguments (see help)")
+            errprint("You must enter atleast 2 arguments (see help)")
             Status = PromptStatus.INVALID_ARG
         
         Force = False
@@ -110,7 +110,7 @@ class RepoManageConsole(Cmd):
             Type = 'Experiment'
             isDirectory = False
         else:
-            print('The first argument must either be "dir" or "exp". (Look at help)')
+            errprint('The first argument must either be "dir" or "exp". (Look at help)')
             Status = PromptStatus.INVALID_ARG
         
         if Status == PromptStatus.SUCCESS:
@@ -127,16 +127,16 @@ class RepoManageConsole(Cmd):
                     elif re.match(r"--n[0-9]+", arg):
                         NumExps = int(arg[3:])
                         if NumExps == 0:
-                            print("The number of experiments to bee booked must be > 0")
+                            errprint("The number of experiments to bee booked must be > 0")
                             Status = PromptStatus.INVALID_ARG
                     else:
-                        print("Invalid Option {Arg}\n. Look at help.".format(Arg=arg))
+                        errprint("Invalid Option {Arg}\n. Look at help.".format(Arg=arg))
                         Status = PromptStatus.INVALID_ARG
                         break
                 elif not Path:
                     Path = arg
                 else:
-                    print("Unable to make sense of argument '{Arg}'".format(Arg=arg))
+                    errprint("Unable to make sense of argument '{Arg}'".format(Arg=arg))
                     Status = PromptStatus.INVALID_ARG
                     break
         
@@ -144,15 +144,15 @@ class RepoManageConsole(Cmd):
             try:
                 Path = BU.ProcessPath(Path, self.TopLevelDir, RelativetoTop)
             except ValueError:
-                print("It appears as though the directory was invalid\n")
+                errprint("It appears as though the directory was invalid\n")
                 Status = PromptStatus.INVALID_ARG
                 BookingSuccess = False
         elif Path:
-            print("The Path {Path} is invalid. Paths must satisfy the following regex\n".format(Path=Path))
-            print(BU.isValidPathREStr)
+            errprint("The Path {Path} is invalid. Paths must satisfy the following regex\n".format(Path=Path))
+            errprint(BU.isValidPathREStr)
             Status = PromptStatus.INVALID_ARG
         else:
-            print("Path to be booked hasn't been specified\n")
+            errprint("Path to be booked hasn't been specified\n")
             Status = PromptStatus.INVALID_ARG
 
         if Status == PromptStatus.SUCCESS and NeedConf:
@@ -202,9 +202,9 @@ class RepoManageConsole(Cmd):
                     print("  Path: {Path}".format(Path=Path))
                     print("  Type: {Type}\n".format(Type=Type))
                 else:
-                    print("The following booking was unsuccessful\n")
-                    print("  Path: {Path}".format(Path=Path))
-                    print("  Type: {Type}\n".format(Type=Type))
+                    errprint("The following booking was unsuccessful\n")
+                    errprint("  Path: {Path}".format(Path=Path))
+                    errprint("  Type: {Type}\n".format(Type=Type))
                     Status = PromptStatus.INVALID_ARG
             else:
                 BookingSuccess = BookIDs.BookExperiments(
@@ -217,10 +217,10 @@ class RepoManageConsole(Cmd):
                     print("  Type: {Type}".format(Type=Type))
                     print("  NExp: {NExp}\n".format(NExp=NumExps))
                 else:
-                    print("The following booking was unsuccessful\n")
-                    print("  Path: {Path}".format(Path=Path))
-                    print("  Type: {Type}".format(Type=Type))
-                    print("  NExp: {NExp}\n".format(NExp=NumExps))
+                    errprint("The following booking was unsuccessful\n")
+                    errprint("  Path: {Path}".format(Path=Path))
+                    errprint("  Type: {Type}".format(Type=Type))
+                    errprint("  NExp: {NExp}\n".format(NExp=NumExps))
                     Status = PromptStatus.INVALID_ARG
 
     def do_unbook(self, arg):
@@ -264,7 +264,7 @@ class RepoManageConsole(Cmd):
         Args = shlex.split(arg)
         
         if not Args:
-            print("You must enter atleast 2 arguments (see help)")
+            errprint("You must enter atleast 2 arguments (see help)")
             Status = PromptStatus.ITER_OVER
         
         Force = False
@@ -279,7 +279,7 @@ class RepoManageConsole(Cmd):
         elif Args[0] == 'exp':
             isDirectory = False
         else:
-            print('The first argument must either be "dir" or "exp". (Look at help)')
+            errprint('The first argument must either be "dir" or "exp". (Look at help)')
             Status = PromptStatus.ITER_OVER
         
         if Status == PromptStatus.SUCCESS:
@@ -294,13 +294,13 @@ class RepoManageConsole(Cmd):
                     elif re.match(r"--n[0-9]+", arg):
                         NumExps = int(arg[3:])
                     else:
-                        print("Invalid Option {Arg}\n. Look at help.".format(Arg=arg))
+                        errprint("Invalid Option {Arg}\n. Look at help.".format(Arg=arg))
                         Status = PromptStatus.INVALID_ARG
                         break
                 elif not Path:
                     Path = arg
                 else:
-                    print("Unable to make sense of argument '{Arg}'".format(Arg=arg))
+                    errprint("Unable to make sense of argument '{Arg}'".format(Arg=arg))
                     Status = PromptStatus.INVALID_ARG
                     break
         
@@ -308,15 +308,15 @@ class RepoManageConsole(Cmd):
             try:
                 Path = BU.ProcessPath(Path, self.TopLevelDir, RelativetoTop)
             except ValueError:
-                print("It appears as though the directory was invalid\n")
+                errprint("It appears as though the directory was invalid\n")
                 Status = PromptStatus.INVALID_ARG
 
         elif Path:
-            print("The Path {Path} is invalid. Paths must satisfy the following regex\n".format(Path=Path))
-            print(BU.isValidPathREStr)
+            errprint("The Path {Path} is invalid. Paths must satisfy the following regex\n".format(Path=Path))
+            errprint(BU.isValidPathREStr)
             Status = PromptStatus.INVALID_ARG
         else:
-            print("Path to be booked hasn't been specified\n")
+            errprint("Path to be booked hasn't been specified\n")
             Status = PromptStatus.INVALID_ARG
 
         if Status == PromptStatus.SUCCESS and NeedConf:
@@ -362,8 +362,8 @@ class RepoManageConsole(Cmd):
                     print("The following Directory (and children) were successfully unbooked:\n")
                     print("  Path: {Path}\n".format(Path=Path))
                 else:
-                    print("The following unbooking was unsuccessful\n")
-                    print("  Path: {Path}".format(Path=Path))
+                    errprint("The following unbooking was unsuccessful\n")
+                    errprint("  Path: {Path}".format(Path=Path))
                     Status = PromptStatus.INVALID_ARG
             else:
                 UnBookingSuccess = BookIDs.UnBookExperiments(
@@ -375,9 +375,9 @@ class RepoManageConsole(Cmd):
                     print("  Path: {Path}".format(Path=Path))
                     print("  NExp: {NExp}\n".format(NExp=NumExps))
                 else:
-                    print("The following booking was unsuccessful\n")
-                    print("  Path: {Path}".format(Path=Path))
-                    print("  NExp: {NExp}\n".format(NExp=NumExps))
+                    errprint("The following booking was unsuccessful\n")
+                    errprint("  Path: {Path}".format(Path=Path))
+                    errprint("  NExp: {NExp}\n".format(NExp=NumExps))
                     Status = PromptStatus.INVALID_ARG
 
     def do_list(self, arg):
@@ -408,7 +408,7 @@ class RepoManageConsole(Cmd):
                 if arg == '--noconf':
                     ConfNeeded = False
                 else:
-                    print("Invalid option (see help): {Option}".format(Option=arg))
+                    errprint("Invalid option (see help): {Option}".format(Option=arg))
                     Status = PromptStatus.INVALID_ARG
                     break
 
@@ -439,7 +439,7 @@ class RepoManageConsole(Cmd):
         if Args and Args[0] == '--noconf':
             ConfNeeded = False
         elif Args:
-            print("\nInvalid Argument {Arg}".format(Arg=Args[0]))
+            errprint("\nInvalid Argument {Arg}".format(Arg=Args[0]))
             return
 
         isConfirmed = True
@@ -458,7 +458,7 @@ class RepoManageConsole(Cmd):
                 self.CurrentEntityData.append(self.NewEntityData)
                 self.NewEntityData = []
                 # Perform Restart (to update CurrentSession.yml)
-                self.do_restart()
+                self.do_restart("")
             # else:
             #     Do nothing
 
@@ -472,13 +472,15 @@ class RepoManageConsole(Cmd):
             with open(CurrEntityDataFile, 'r') as Fin:
                 self.CurrentEntityData = BookIDs.getEntityDataFromStream(Fin)
         else:
-            print('The file EntityData.yml is missing')
+            errprint('The file EntityData.yml is missing')
             self.CurrentEntityData = None
 
         # See if read was successful
         if self.CurrentEntityData is None:
-            print('It appears that we cannot read the urrently booked Entities\n',
-                  'from the file {0}. INITIALIZATION FAILED\n'.format('EntityData.yml'))
+            errprint(
+                'It appears that we cannot read the urrently booked Entities\n',
+                'from the file {0}. INITIALIZATION FAILED\n'.format('EntityData.yml')
+            )
             self.InitSuccessful = False
 
         # try to read the Current Session (new unconfirmed) Entities
@@ -490,8 +492,9 @@ class RepoManageConsole(Cmd):
             self.NewEntityData = []
 
         if self.NewEntityData is None:
-            print('It appears that we cannot read the currently uncommitted Entities\n',
-                  'from the file {0}. INITIALIZATION FAILED\n'.format('CurrentSession.yml'))
+            errprint(
+                'It appears that we cannot read the currently uncommitted Entities\n',
+                'from the file {0}. INITIALIZATION FAILED\n'.format('CurrentSession.yml'))
             self.InitSuccessful = False
 
         # if the initialization is not successful, call exit without saving
@@ -511,7 +514,7 @@ class RepoManageConsole(Cmd):
     def default(self, line):
         Args = shlex.split(line)
         Command = Args[0]
-        print("The command '{Cmd}' is undefined\n".format(Cmd=Command))
+        errprint("The command '{Cmd}' is undefined\n".format(Cmd=Command))
         self.do_help([])
 
     def do_help(self, arg):
@@ -559,7 +562,7 @@ class RepoManageConsole(Cmd):
                 os.mkdir(TempFilesDir)
             with open(os.path.join(TempFilesDir, 'CurrentSession.yml'), 'w') as Fout:
                 BookIDs.FlushData(Fout, self.NewEntityData)
-        print('Exiting')
+        print('(Exiting)')
         return True
 
 if __name__ == '__main__':

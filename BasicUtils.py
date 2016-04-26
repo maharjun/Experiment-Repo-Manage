@@ -1,5 +1,6 @@
-﻿import os
+import os
 import re
+import sys
 import inspect
 
 isValidPathREStr = r"""
@@ -27,6 +28,10 @@ isValidPathREStr = r"""
 isValidPathRE = re.compile(isValidPathREStr,re.VERBOSE)
 
 
+def debug_print(PrintString):
+    print(PrintString)
+
+
 def getNonEmptyInput(InputPrompt):
     Input = ''
     ReceivedInput = False
@@ -37,8 +42,8 @@ def getNonEmptyInput(InputPrompt):
     return Input
 
 
-def debug_print(PrintString):
-    print(PrintString)
+def errprint(PrintString):
+    print(PrintString,file=sys.stderr)
 
 
 def ProcessPath(Path, ExperimentTopDir, RelativetoTop=False):
@@ -63,7 +68,7 @@ def ProcessPath(Path, ExperimentTopDir, RelativetoTop=False):
     Path = Path.replace("\\","/")
 
     if Path[0:2] == '..' or Path[0] == '/' or Path[0] == '\\':
-        print((
+        errprint((
             "The Path {ActPath} does not appear to be a subdirectory\n"
             "of the Top Level Experiment Directory {TopLevelPath}"
         ).format(ActPath=Path, TopLevelPath=ExperimentTopDir))
@@ -86,4 +91,3 @@ def getFrameDir():
         FrameDir = None
 
     return FrameDir
-

@@ -1,4 +1,4 @@
-﻿class ExpRepoEntity:
+class ExpRepoEntity:
     """
     This class basically defines the structure for the entries in the
     main entity database. An entity is either a directory (intermediate
