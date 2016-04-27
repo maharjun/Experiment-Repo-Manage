@@ -10,6 +10,7 @@ from git import Repo
 from enum import Enum
 import BookIDs
 import sys
+import colorama as cr
 from io import StringIO
 
 
@@ -26,7 +27,7 @@ class PromptStatus(Enum):
 
 class RepoManageConsole(Cmd):
     intro = 'Welcome to the Repositry Management shell. Type help or ? to list commands.'
-    prompt = 'command> '
+    prompt = cr.Fore.RED + cr.Style.BRIGHT + 'command> '
     
     TopLevelDir = ''
     ThisModuleDir = ''
@@ -101,7 +102,7 @@ class RepoManageConsole(Cmd):
         Args = shlex.split(arg)
         
         if not Args:
-            errprint("You must enter atleast 2 arguments (see help)")
+            errprint("\nYou must enter atleast 2 arguments (see help)")
             Status = PromptStatus.INVALID_ARG
         
         Force = False
@@ -136,16 +137,16 @@ class RepoManageConsole(Cmd):
                     elif re.match(r"--n[0-9]+", arg):
                         NumExps = int(arg[3:])
                         if NumExps == 0:
-                            errprint("The number of experiments to bee booked must be > 0")
+                            errprint("\nThe number of experiments to bee booked must be > 0")
                             Status = PromptStatus.INVALID_ARG
                     else:
-                        errprint("Invalid Option {Arg}\n. Look at help.".format(Arg=arg))
+                        errprint("\nInvalid Option {Arg}\n. Look at help.".format(Arg=arg))
                         Status = PromptStatus.INVALID_ARG
                         break
                 elif not Path:
                     Path = arg
                 else:
-                    errprint("Unable to make sense of argument '{Arg}'".format(Arg=arg))
+                    errprint("\nUnable to make sense of argument '{Arg}'".format(Arg=arg))
                     Status = PromptStatus.INVALID_ARG
                     break
         
@@ -153,15 +154,15 @@ class RepoManageConsole(Cmd):
             try:
                 Path = BU.ProcessPath(Path, self.TopLevelDir, RelativetoTop)
             except ValueError:
-                errprint("It appears as though the directory was invalid\n")
+                errprint("\nIt appears as though the directory was invalid")
                 Status = PromptStatus.INVALID_ARG
                 BookingSuccess = False
         elif Path:
-            errprint("The Path {Path} is invalid. Paths must satisfy the following regex\n".format(Path=Path))
+            errprint("\nThe Path {Path} is invalid. Paths must satisfy the following regex".format(Path=Path))
             errprint(BU.isValidPathREStr)
             Status = PromptStatus.INVALID_ARG
         else:
-            errprint("Path to be booked hasn't been specified\n")
+            errprint("\nPath to be booked hasn't been specified")
             Status = PromptStatus.INVALID_ARG
         
         if Status == PromptStatus.SUCCESS and NeedConf:
@@ -173,13 +174,12 @@ class RepoManageConsole(Cmd):
                       Type          : {Type}
                       
                       Force         : {Force}
-                    
                     """).format(Path=Path,Type=Type,Force=Force)))
                 Confirmation = BU.getNonEmptyInput(">> ")
                 if Confirmation in ['y', 'Y']:
                     Status = PromptStatus.SUCCESS
                 else:
-                    conprint("Booking Cancelled")
+                    conprint("\nBooking Cancelled")
                     Status = PromptStatus.ITER_OVER
             else:
                 conprint(textwrap.dedent(("""
@@ -190,13 +190,12 @@ class RepoManageConsole(Cmd):
                       No. of Experiments : {NExp}
                       
                       Force              : {Force}
-                    
                     """).format(Path=Path,Type=Type,Force=Force,NExp=NumExps)))
                 Confirmation = BU.getNonEmptyInput(">> ")
                 if Confirmation in ['y', 'Y']:
                     Status = PromptStatus.SUCCESS
                 else:
-                    print("Booking Cancelled")
+                    print("\nBooking Cancelled")
                     Status = PromptStatus.ITER_OVER
         
         if Status == PromptStatus.SUCCESS:
@@ -207,13 +206,13 @@ class RepoManageConsole(Cmd):
                     Force=Force)
                 
                 if BookingSuccess:
-                    print("The following booking was successful:\n")
+                    print("\nThe following booking was successful:\n")
                     print("  Path: {Path}".format(Path=Path))
-                    print("  Type: {Type}\n".format(Type=Type))
+                    print("  Type: {Type}".format(Type=Type))
                 else:
-                    errprint("The following booking was unsuccessful\n")
+                    errprint("\nThe following booking was unsuccessful\n")
                     errprint("  Path: {Path}".format(Path=Path))
-                    errprint("  Type: {Type}\n".format(Type=Type))
+                    errprint("  Type: {Type}".format(Type=Type))
                     Status = PromptStatus.INVALID_ARG
             else:
                 BookingSuccess = BookIDs.BookExperiments(
@@ -221,15 +220,15 @@ class RepoManageConsole(Cmd):
                         NumofExps=NumExps, Force=Force)
                 
                 if BookingSuccess:
-                    print("The following booking was successful:\n")
+                    print("\nThe following booking was successful:\n")
                     print("  Path: {Path}".format(Path=Path))
                     print("  Type: {Type}".format(Type=Type))
-                    print("  NExp: {NExp}\n".format(NExp=NumExps))
+                    print("  NExp: {NExp}".format(NExp=NumExps))
                 else:
-                    errprint("The following booking was unsuccessful\n")
+                    errprint("\nThe following booking was unsuccessful\n")
                     errprint("  Path: {Path}".format(Path=Path))
                     errprint("  Type: {Type}".format(Type=Type))
-                    errprint("  NExp: {NExp}\n".format(NExp=NumExps))
+                    errprint("  NExp: {NExp}".format(NExp=NumExps))
                     Status = PromptStatus.INVALID_ARG
     
     def do_unbook(self, arg):
@@ -273,7 +272,7 @@ class RepoManageConsole(Cmd):
         Args = shlex.split(arg)
         
         if not Args:
-            errprint("You must enter atleast 2 arguments (see help)")
+            errprint("\nYou must enter atleast 2 arguments (see help)")
             Status = PromptStatus.ITER_OVER
         
         Force = False
@@ -303,13 +302,13 @@ class RepoManageConsole(Cmd):
                     elif re.match(r"--n[0-9]+", arg):
                         NumExps = int(arg[3:])
                     else:
-                        errprint("Invalid Option {Arg}\n. Look at help.".format(Arg=arg))
+                        errprint("\nInvalid Option {Arg}\n. Look at help.".format(Arg=arg))
                         Status = PromptStatus.INVALID_ARG
                         break
                 elif not Path:
                     Path = arg
                 else:
-                    errprint("Unable to make sense of argument '{Arg}'".format(Arg=arg))
+                    errprint("\nUnable to make sense of argument '{Arg}'".format(Arg=arg))
                     Status = PromptStatus.INVALID_ARG
                     break
         
@@ -317,15 +316,15 @@ class RepoManageConsole(Cmd):
             try:
                 Path = BU.ProcessPath(Path, self.TopLevelDir, RelativetoTop)
             except ValueError:
-                errprint("It appears as though the directory was invalid\n")
+                errprint("\nIt appears as though the directory was invalid")
                 Status = PromptStatus.INVALID_ARG
         
         elif Path:
-            errprint("The Path {Path} is invalid. Paths must satisfy the following regex\n".format(Path=Path))
+            errprint("\nThe Path {Path} is invalid. Paths must satisfy the following regex".format(Path=Path))
             errprint(BU.isValidPathREStr)
             Status = PromptStatus.INVALID_ARG
         else:
-            errprint("Path to be booked hasn't been specified\n")
+            errprint("\nPath to be booked hasn't been specified")
             Status = PromptStatus.INVALID_ARG
         
         if Status == PromptStatus.SUCCESS and NeedConf:
@@ -336,13 +335,12 @@ class RepoManageConsole(Cmd):
                       Path          : {Path}
                       
                       Force         : {Force}
-                    
                     """).format(Path=Path,Force=Force)))
                 Confirmation = BU.getNonEmptyInput(">> ")
                 if Confirmation in ['y', 'Y']:
                     Status = PromptStatus.SUCCESS
                 else:
-                    print("Booking Cancelled")
+                    print("\nBooking Cancelled")
                     Status = PromptStatus.ITER_OVER
             else:
                 conprint(textwrap.dedent(("""
@@ -352,13 +350,12 @@ class RepoManageConsole(Cmd):
                       No. of Experiments : {NExp}
                       
                       Force              : {Force}
-                    
                     """).format(Path=Path,Force=Force,NExp=NumExps)))
                 Confirmation = BU.getNonEmptyInput(">> ")
                 if Confirmation in ['y', 'Y']:
                     Status = PromptStatus.SUCCESS
                 else:
-                    print("Booking Cancelled")
+                    print("\nBooking Cancelled")
                     Status = PromptStatus.ITER_OVER
         
         if Status == PromptStatus.SUCCESS:
@@ -368,10 +365,10 @@ class RepoManageConsole(Cmd):
                                         Force=Force)
                 
                 if UnBookingSuccess:
-                    print("The following Directory (and children) were successfully unbooked:\n")
-                    print("  Path: {Path}\n".format(Path=Path))
+                    print("\nThe following Directory (and children) were successfully unbooked:\n")
+                    print("  Path: {Path}".format(Path=Path))
                 else:
-                    errprint("The following unbooking was unsuccessful\n")
+                    errprint("\nThe following unbooking was unsuccessful\n")
                     errprint("  Path: {Path}".format(Path=Path))
                     Status = PromptStatus.INVALID_ARG
             else:
@@ -380,13 +377,13 @@ class RepoManageConsole(Cmd):
                             NumofExps=NumExps)
                 
                 if UnBookingSuccess:
-                    print("The following experiments were successfully unbooked:\n")
+                    print("\nThe following experiments were successfully unbooked:\n")
                     print("  Path: {Path}".format(Path=Path))
-                    print("  NExp: {NExp}\n".format(NExp=NumExps))
+                    print("  NExp: {NExp}".format(NExp=NumExps))
                 else:
-                    errprint("The following booking was unsuccessful\n")
+                    errprint("\nThe following booking was unsuccessful\n")
                     errprint("  Path: {Path}".format(Path=Path))
-                    errprint("  NExp: {NExp}\n".format(NExp=NumExps))
+                    errprint("  NExp: {NExp}".format(NExp=NumExps))
                     Status = PromptStatus.INVALID_ARG
     
     def do_list(self, arg):
@@ -417,7 +414,7 @@ class RepoManageConsole(Cmd):
                 if arg == '--noconf':
                     ConfNeeded = False
                 else:
-                    errprint("Invalid option (see help): {Option}".format(Option=arg))
+                    errprint("\nInvalid option (see help): {Option}".format(Option=arg))
                     Status = PromptStatus.INVALID_ARG
                     break
         
@@ -550,6 +547,7 @@ class RepoManageConsole(Cmd):
     def postcmd(self, stop, line):
         self.isRedirNeeded = False
         self.RedirFilePath = ""
+        conprint("")
         return super().postcmd(stop, line)
 
     def preloop(self):
@@ -604,7 +602,7 @@ class RepoManageConsole(Cmd):
     def default(self, line):
         Args = shlex.split(line)
         Command = Args[0]
-        errprint("The command '{Cmd}' is undefined\n".format(Cmd=Command))
+        errprint("\nThe command '{Cmd}' is undefined".format(Cmd=Command))
         self.do_help("")
     
     def do_help(self, arg):
@@ -613,9 +611,9 @@ class RepoManageConsole(Cmd):
             # if arg is specified then display help for the command specified in arg.
             if arg in self.ValidCommandList:
                 doc = getattr(self, "do_" + arg).__doc__
-                self.stdout.write(textwrap.dedent("%s\n" % str(doc)))
+                self.stdout.write(textwrap.dedent("%s" % str(doc)))
             else:
-                self.stdout.write("The function '%s' is not defined.\n\n" % arg)
+                self.stdout.write("\nThe function '%s' is not defined.\n" % arg)
             return
         else:
             # if arg is not specified display the default Cmd help instructions
@@ -656,4 +654,5 @@ class RepoManageConsole(Cmd):
         return True
 
 if __name__ == '__main__':
+    cr.init()
     RepoManageConsole().cmdloop()

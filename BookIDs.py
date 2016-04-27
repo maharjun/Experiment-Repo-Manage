@@ -29,7 +29,7 @@ def UnBookEntity(Entities2Unbook, NewEntityData):
             Entity.Path = '$null'
     
     for EntityInfo in sorted(Entities2Unbook.elements()):
-        errprint("('{0}', '{1}') does not correspond to any remaining booked entity.".format(EntityInfo[0], EntityInfo[1]))
+        errprint("\n('{0}', '{1}') does not correspond to any remaining booked entity.".format(EntityInfo[0], EntityInfo[1]))
     
     # recreate array by mutating object instead of creating a new object
     # observe the [:]
@@ -58,7 +58,7 @@ def BookDirectory(Path, Type,
         # If Directory has already been assigned UID
         ExistingDir = ExistingDir[0]
         errprint((
-            "The directory '{DirPath}' has already been booked\n"
+            "\nThe directory '{DirPath}' has already been booked\n"
             "   UID : {UID}"
         ).format(DirPath=Path, UID=ExistingDir.ID))
     else:
@@ -76,7 +76,7 @@ def BookDirectory(Path, Type,
         if not ExistingParentDir:
             if not Force:
                 errprint((
-                    "The Parent directory '{ParDirPath}' has not been"    "\n"
+                    "\nThe Parent directory '{ParDirPath}' has not been"    "\n"
                     "booked. use Force=True in order to book an"  "\n"
                     "ID for the Parent Directory itself"
                 ).format(ParDirPath=ParentDirPath))
@@ -89,7 +89,7 @@ def BookDirectory(Path, Type,
             ExistingParentDir = ExistingParentDir[0]
             if ExistingParentDir.Type == 'ExperimentDir':
                 errprint((
-                    "The Parent directory '{ParDirPath}' has been booked" "\n"
+                    "\nThe Parent directory '{ParDirPath}' has been booked" "\n"
                     "as an experiment directory. Hence you cannot book a" "\n"
                     "subdirectory."
                 ).format(ParDirPath=ParentDirPath))
@@ -103,7 +103,7 @@ def BookDirectory(Path, Type,
             isNameValid = True
             if re.match(r"^[a-zA-Z]((\w|\-)(?!$))*[a-zA-z0-9]?$", PathBaseName) is None:
                 errprint((
-                    "The Directory Name {0} is not a valid name. A valid Name must start\n"
+                    "\nThe Directory Name {0} is not a valid name. A valid Name must start\n"
                     "with an alphabet, contain only the characters [-_a-zA-Z0-9], and\n"
                     "end with an alphanumeric character"
                 ).format(PathBaseName))
@@ -132,7 +132,7 @@ def UnBookDirectory(Path, NewEntityData, Force=False):
     
     if len(CurrPathEntities) > 1 and not Force:
             errprint((
-                "The Specified directory '{ParDirPath}' has children"     "\n"
+                "\nThe Specified directory '{ParDirPath}' has children"     "\n"
                 "that have been assigned a UID. use Force=True in order"  "\n"
                 "to un-book the directory and all its children/subdirs"
             ).format(ParDirPath=Path))
@@ -142,8 +142,8 @@ def UnBookDirectory(Path, NewEntityData, Force=False):
         UnbookStatus = 1
     else:
         errprint((
-                "The Specified directory '{ParDirPath}' has not been"     "\n"
-                "booked in this session"                                  "\n"
+                "\nThe Specified directory '{ParDirPath}' has not been"     "\n"
+                "booked in this session"
         ).format(ParDirPath=Path))
         UnbookStatus = 0
     return UnbookStatus
@@ -159,9 +159,9 @@ def UnBookExperiments(Path, NewEntityData, NumofExps=None):
         NumofExps = len(CurrPathExps)
     elif NumofExps > len(CurrPathExps):
         conprint((
-            "The number of experiments to be deleted ({0}) exceeds the \n"
+            "\nThe number of experiments to be deleted ({0}) exceeds the \n"
             "total number of experiments with specified path ({1}).\n"
-            "Truncating the number accordingly.\n"
+            "Truncating the number accordingly."
         ).format(NumofExps, len(CurrPathExps)))
         NumofExps = len(CurrPathExps)
     
@@ -170,8 +170,8 @@ def UnBookExperiments(Path, NewEntityData, NumofExps=None):
         DeleteStatus = 1
     else:
         errprint((
-            "The given path has either not been booked, or has no experiments" "\n"
-            "booked under it." "\n"
+            "\nThe given path has either not been booked, or has no experiments" "\n"
+            "booked under it."
         ).format(NumofExps, len(CurrPathExps)))
         DeleteStatus = 0
     return DeleteStatus
@@ -193,7 +193,7 @@ def BookExperiments(Path, NewEntityData, CurrentEntityData,
     if not ExistingDir:
         if not Force:
             errprint((
-                "The containing directory '{ContDirPath}' has not been "
+                "\nThe containing directory '{ContDirPath}' has not been "
                 "assigned a UID. use Force=True in order to book an "
                 "ID for the Parent Directory itself"
             ).format(ContDirPath=Path))
@@ -205,7 +205,7 @@ def BookExperiments(Path, NewEntityData, CurrentEntityData,
         ExistingDir = ExistingDir[0]
         if ExistingDir.Type == 'IntermediateDir':
             errprint((
-                "The containing directory '{ContDirPath}' has been booked" "\n"
+                "\nThe containing directory '{ContDirPath}' has been booked" "\n"
                 "as an intermediate directory. Hence you cannot book experiments" "\n"
                 "directly under this directory"
             ).format(ContDirPath=Path))
@@ -524,7 +524,7 @@ def CreateDirectory(NewEntity, ExperimentRepo):
             have been validly created. Either It doesnt exist or doesnt contain a
             'folderlog.yml' file. This really shouldn't be happening
             
-            Parent Directory Path: '{Path}'
+            Parent Directory Path: '{Path}'\
             """.format(Path=ParentDirPath)))
         raise ValueError
     
@@ -541,7 +541,7 @@ def CreateDirectory(NewEntity, ExperimentRepo):
                 
                 In this case, try rebooking and changing the name of the directory
 
-            Path of Directory: {Path}
+            Path of Directory: {Path}\
             """.format(Path=ParentDirPath)))
         raise ValueError
     
@@ -653,7 +653,7 @@ def ValidateStage(ExperimentRepo):
     # check if current branch is master branch
     CurrentBranch = ExperimentRepo.active_branch
     if CurrentBranch.name != 'master':
-        errprint("HEAD must be master")
+        errprint("\nHEAD must be master")
         StageValid = False
 
     # check if current branch is up-to-date
@@ -726,16 +726,17 @@ def CommitandPush(CommitMessage, ExperimentRepo):
     MasterRetList = ExperimentRepo.remote('origin').push('master:master')
     if not MasterRetList or (MasterRetList[0].flags & remote.PushInfo.ERROR):
         errprint(
+            "\n"
             "The Push was unsuccessful. This is possibly due to the current branch not being\n"
             "downstream of the remote branch. In this case, simply try again.  This could\n"
-            "possibly also be due to a network error. The current commit will be rolled back.\n"
+            "possibly also be due to a network error. The current commit will be rolled back."
         )
         ExperimentRepo.heads.master.reset('HEAD~1')
     elif MasterRetList[0].flags & remote.PushInfo.FAST_FORWARD:
         conprint("\nFast Forward Merge was successful")
         PushSuccess = True
     else:
-        errprint("Wierd shits goin down")
+        errprint("\nWierd shits goin down")
         ExperimentRepo.heads.master.reset('HEAD~1')
     
     isSuccess = PushSuccess
@@ -805,7 +806,7 @@ def getTopLevelExpDir():
         CurrDir = NewDir
     else:
         errprint(
-            "The current working directory '{CWD}' is not inside the"
+            "\nThe current working directory '{CWD}' is not inside the"
             " experiment repository and hence the top directory of the"
             " Experiment repository cannot be calculated")
         TopDir = ''
@@ -836,7 +837,7 @@ def getEntityDataFromStream(Stream):
             EntityList = []
     else:
         # Complain about invalid data file
-        errprint(textwrap.dedent("""\
+        errprint(textwrap.dedent("""
             The file containing Entity Data is invalid. The file must be as follows
             (file content is indented 4 spaces):
                 
@@ -867,7 +868,7 @@ def getEntityDataFromStream(Stream):
                   .
                   .
                 
-                #####################<100 times>...##
+                #####################<100 times>...##\
             """))
     
     return EntityList
