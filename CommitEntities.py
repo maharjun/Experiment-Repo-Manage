@@ -82,7 +82,7 @@ def getExplogEntry(ExperimentEntity):
     Lines.append("  Title      : ")
     Lines.append("  Description: |")
     Lines.append("")
-    Lines.append("{0:#<100}".format("## End of Experiment {UID}".format(UID=ExperimentEntity.ID)))
+    Lines.append("{0:#<100}".format("## End of Experiment {UID} ".format(UID=ExperimentEntity.ID)))
 
     return "\n".join(Lines)
 
