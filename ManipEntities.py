@@ -228,62 +228,39 @@ def BookExperiments(Path, NewEntityData, CurrentEntityData,
 
 def getSessionBookingsString(NewEntityData):
     
-    SortedEntityData = sorted(
-        NewEntityData,
-        key=lambda x: (
-            x.Path,
-            (0 if x.Type in ['IntermediateDir','ExperimentDir'] else 1)
-        )
-    )
-    
-    # for each entity, split its path.
-    SplitSortedUID = [re.split(r"[\\/]", Entity.Path) for Entity in SortedEntityData]
-    
-    # for each entity, do the following
-    #   If it is a directory,
-    #     search depthwise for the longest matching set of keys.
-    #     once a match fails, add the remaining part of the path as a key
-    #   If it is an experiment,
-    #     search depthwise for the match of its entire path:
-    #     Finally, add a subkey NumberofExps: and increment its value
-    
-    DisplayDict = {}
-    for Ent, SplitEntPath in zip(SortedEntityData, SplitSortedUID):
-        if Ent.Type in ['IntermediateDir', 'ExperimentDir']:
-            CurrentSubDict = DisplayDict
-            for PartPath in SplitEntPath:
-                if PartPath not in CurrentSubDict:
-                    CurrentSubDict[PartPath] = {}
-                CurrentSubDict = CurrentSubDict[PartPath]
-            if Ent.Type == 'ExperimentDir':
-                CurrentSubDict['NumofExps'] = 0
-        else:
-            # Here Path MUST exist else dragons
-            CurrentSubDict = DisplayDict
-            for PartPath in SplitEntPath:
-                CurrentSubDict = CurrentSubDict[PartPath]
-            CurrentSubDict['NumofExps'] += 1
-    
-    def getDirStringList(PathListDict):
+    # get tree for NewEntityData
+    NewEntityTree = getTreeFromNewEntities(NewEntityData)
+
+    def getContentString(EntityTree, IsInit):
         """
-        This function returns a a string representing te specified entity heirarcy
-        in PathListDict
+        This function returns a string representing the subelements of the Tree
+        EntityTree. The Path ParentPath is stripped from the the Paths of the
+        subelements.
         """
-        ReturnStringList = []
         
-        PathListDictItems = PathListDict.items()
-        for (DictKey, DictValue) in PathListDictItems:
-            if DictKey == 'NumofExps' and DictValue.__class__ == int:
-                ReturnStringList.append(DictKey + ": " + str(DictValue))
-            else:
-                ReturnStringList.append(DictKey + "/\n")
+        ReturnStringList = []
+        ParentType = 'IntermediateDir' if type(EntityTree) is dict else 'ExperimentDir'
+
+        if ParentType == 'IntermediateDir':
+            for (Entity, EntityChildren) in EntityTree.items():
+                if IsInit:
+                    StrippedEntityPath = Entity.Path
+                else:
+                    StrippedEntityPath = path.basename(Entity.Path)
+                
+                if StrippedEntityPath == '':
+                    StrippedEntityPath = "<Top Dir>"
+
+                ReturnStringList.append(StrippedEntityPath + "/\n")
                 ReturnStringList[-1] += (
                     "  " +
-                    getDirStringList(DictValue).replace("\n", "\n  ")
+                    getContentString(EntityChildren, False).replace("\n", "\n  ")
                 )  # the above is basically tabbing the output by 2 spaces
+        else:
+            ReturnStringList.append("Number of Exps: {NExps}".format(NExps=len(EntityTree)))
         return "\n".join(sorted(ReturnStringList))
     
-    return getDirStringList(DisplayDict)
+    return getContentString(NewEntityTree[0], IsInit=True)
 
 
 def AssignUIDs(NewEntityData, CurrentEntityData):
@@ -381,8 +358,15 @@ def getTreeFromNewEntities(NewEntityData, CurrentEntityData=[]):
         if Ent.Type in ['IntermediateDir', 'ExperimentDir']
     }
 
+    # Creating array for pseudo parents so that a parent with a
+    # particular path will have a unique object ID i.e. it doesnt get
+    # created again and again with identical values and different
+    # object IDs
+    PseudoParentsDict = {}
+
     for Entity in NewEntityData:
         
+        # Calculate Parent Attributes
         if Entity.Type == 'Experiment':
             ParentPath = Entity.Path
             ParentType = 'ExperimentDir'
@@ -391,19 +375,34 @@ def getTreeFromNewEntities(NewEntityData, CurrentEntityData=[]):
             ParentType = 'IntermediateDir'
 
         if ParentPath not in NewEntityParentDict:
+            # In this case, we have to either get parent from
+            # CurrentEntityParentDict or create a pseudo-parent
             if ParentPath not in CurrentEntityParentDict:
-                ParentEntity = Entities.ExpRepoEntity(
-                    ID=Entity.ParentID,
-                    ParentID=Entity.ParentID,
-                    Type=ParentType,
-                    Path=ParentPath
-                )
+                if ParentPath not in PseudoParentsDict:
+                    ParentEntity = Entities.ExpRepoEntity(
+                        ID=Entity.ParentID,
+                        ParentID=Entity.ParentID,
+                        Type=ParentType,
+                        Path=ParentPath
+                    )
+                    PseudoParentsDict[ParentPath] = ParentEntity
+                else:
+                    ParentEntity = PseudoParentsDict[ParentPath]
             else:
                 ParentEntity = CurrentEntityParentDict[ParentPath]
 
-            TreeDict[ParentEntity] = {}
-            TreeDict[0][ParentEntity] = TreeDict[ParentEntity]
+            # also, if the parent is not yet added to TreeDict,
+            # an entry needs to be made under the key 0
+            if ParentEntity not in TreeDict:
+                if ParentEntity.Type == 'IntermediateDir':
+                    TreeDict[ParentEntity] = {}
+                else:
+                    TreeDict[ParentEntity] = []
+                TreeDict[0][ParentEntity] = TreeDict[ParentEntity]
         else:
+            # in this case it is assumed by virtue of the parent
+            # coming before the child in the list, that the
+            # ParentEntity is never not in the TreeDict
             ParentEntity = NewEntityParentDict[ParentPath]
 
         if ParentEntity.Type == 'IntermediateDir':

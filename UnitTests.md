@@ -19,3 +19,13 @@ book exp A/B --n4 --reltop --noconf
 list > TempText
 confirm > TempText2
 Y
+
+book exp A/C --n3 --reltop --noconf
+confirm --noconf > TempText3
+
+book exp A/D/A --n3 --reltop --force --noconf
+confirm --noconf > TempText4
+
+book exp A/D/C --n3 --reltop --force --noconf
+book exp A/D/D --n3 --reltop --force --noconf
+confirm --noconf > TempText5
