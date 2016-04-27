@@ -9,6 +9,7 @@ import Entities
 from git import Repo
 from enum import Enum
 import ManipEntities
+import CommitEntities
 import sys
 import colorama as cr
 from io import StringIO
@@ -456,7 +457,7 @@ class RepoManageConsole(Cmd):
                 isConfirmed = False
         
         if isConfirmed:
-            isBookingsConfirmed = ManipEntities.ConfirmBookings(
+            isBookingsConfirmed = CommitEntities.ConfirmBookings(
                 self.CurrentEntityData,
                 self.NewEntityData,
                 Repo(self.TopLevelDir))
