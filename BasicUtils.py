@@ -5,21 +5,23 @@ import inspect
 
 isValidPathREStr = r"""
     ^
-    (?: # A path is a sequence of path words separated by slashes
-        (?: # each path word must be as below
-            
+    # A path is a sequence of path words separated by slashes
+    (?:
+        # each path word must be as below
+        (?:
             # It must either be a valid folder name i.e.
-            [a-zA-Z]          # must start with alphabetic character
-            (?: # if it contains any other characters, they must be as below
-                [a-zA-Z_0-9\-]* # must only contain alphanumeric, underscore or hypen
-                [a-zA-Z0-9]     # must end in an alphanumeric character
+            [a-zA-Z] # must start with alphabetic character
+            (?:      # if it contains any other characters,
+                [a-zA-Z_0-9\-]* # they must only contain alphanumeric, underscore or hyphen
+                [a-zA-Z0-9]     # and must end in an alphanumeric character
             )? |
             # Or, it must be one of '.' and '..'
             \. |
             \.\.|
             # Or, it must be nothing ('')
         )
-        (?:[\\/]|$) # and must be followed by either a separator or end
+        # and must be followed by either a separator or end
+        (?:[\\/]|$)
     )+
     
     $   # followed by end
