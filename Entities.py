@@ -29,7 +29,7 @@ class ExpRepoEntity:
         if Type in ['IntermediateDir', 'ExperimentDir', 'Experiment']:
             self.Type = Type
         
-        self.Path = Path
+        self.Path = Path if Path is not None else ''
     
     def getYAMLElemList(self):
         """
