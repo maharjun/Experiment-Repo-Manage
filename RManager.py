@@ -8,6 +8,8 @@ from BasicUtils import errprint, conprint
 from git import Repo
 from enum import Enum
 import BookIDs
+import sys
+from io import StringIO
 
 
 class PromptStatus(Enum):
@@ -43,6 +45,12 @@ class RepoManageConsole(Cmd):
     # smoothly. It is assumed to be true and is set to false in the
     # preloop function if initialization fails.
     InitSuccessful = True
+    
+    # This is a Flag. It indicates whether a redirection is desired
+    # in the current function call. If it is true, the value of
+    # RedirFile is used to provide the redirection
+    isRedirNeeded = False
+    RedirFilePath = ""
     
     # TTD:
     # Find out the variables that need to be global
@@ -463,6 +471,86 @@ class RepoManageConsole(Cmd):
             # else:
             #     Do nothing
     
+    def precmd(self, line):
+        """
+        This function processes each line before passing it to the commands.
+        Currently this function performs the following function:
+        
+        It analyses the line for any specified output redirection and enables
+        said redirection before running the command.
+        """
+        
+        # split the line. This also tests if the line is validly splittable
+        try:
+            Args = shlex.split(line)
+        except ValueError as V:
+            errprint("\nUnknown Syntax see below for more details:")
+            print("")
+            print(V.args[0])
+            line = ""
+            Args = []
+
+        # check if redirection is requested and calculate position of '>'
+        isRedir = ('>' in Args)
+        RedirIndex = Args.index('>') if isRedir else None
+        
+        isValidRedir = True
+        
+        if isRedir:
+            # Validate Redirection
+            # 1. Ensure that '>' is the second last argument
+            if (RedirIndex == len(Args)-2):
+                RedirPath = Args[-1]
+            else:
+                errprint(
+                    "\nExactly 1 argument expected after output redirection marker '>'"
+                )
+                isValidRedir = False
+            
+            if isValidRedir:
+                # if it is valid, Enable Redirection, store path and
+                # clip redirection from line
+                self.isRedirNeeded = isRedir
+                self.RedirFilePath = RedirPath
+                line = " ".join(Args[0:-2])
+            else:
+                # make line blank so that no command is executed
+                line = ""
+        
+        return line
+    
+    def onecmd(self, line):
+        """
+        This function adds some exception handling in the context of the stream
+        redirection operations.
+        """
+        
+        if self.isRedirNeeded:
+            TempStream = StringIO()
+            sys.stdout = TempStream
+            try:
+                RetValue = Cmd.onecmd(self, line)
+                OutputString = TempStream.getvalue()
+                try:
+                    with open(self.RedirFilePath, 'w') as Fout:
+                        Fout.write(OutputString)
+                except:
+                    errprint(
+                        "\nError writing stdout to file {0}".format(self.RedirFilePath)
+                    )
+            finally:
+                TempStream.close()
+                sys.stdout = sys.__stdout__
+        else:
+            RetValue = Cmd.onecmd(self, line)
+
+        return RetValue
+    
+    def postcmd(self, stop, line):
+        self.isRedirNeeded = False
+        self.RedirFilePath = ""
+        return super().postcmd(stop, line)
+
     def preloop(self):
         self.ThisModuleDir = BU.getFrameDir()
         self.TopLevelDir = os.path.normpath(os.path.join(self.ThisModuleDir, '..'))
