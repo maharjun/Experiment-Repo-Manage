@@ -605,7 +605,7 @@ class RepoManageConsole(Cmd):
         Args = shlex.split(line)
         Command = Args[0]
         errprint("The command '{Cmd}' is undefined\n".format(Cmd=Command))
-        self.do_help([])
+        self.do_help("")
     
     def do_help(self, arg):
         'List available commands with "help" or detailed help with "help cmd".'
@@ -619,7 +619,7 @@ class RepoManageConsole(Cmd):
             return
         else:
             # if arg is not specified display the default Cmd help instructions
-            Cmd.do_help(self, [])
+            Cmd.do_help(self, "")
     
     def do_restart(self, arg):
         """
