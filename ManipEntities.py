@@ -311,21 +311,100 @@ def AssignUIDs(NewEntityData, CurrentEntityData):
     return AssignedEntityData
 
 
-def getTreeFromNewEntities(CurrentEntityData, NewEntityData):
+def getTreeFromNewEntities(NewEntityData, CurrentEntityData=[]):
+    """
+    The following parses NewEntityData to create a tree-like structure
+    which can be used to traverse it. The structure of the tree is as
+    below.
+    
+    It is stored as a dictionary as below:
+    
+    TreeDict = {
+                   0:TopLevelParents,
+                   ParentEntity1:ParentEntity1sChildrenList,
+                   ParentEntity2:ParentEntity2sChildrenList,
+                   .
+                   .
+               }
+    
+    Where each key except 0 is A PARENT Entity of some element in
+    NewEntityData. The tree heirarch is inferred from the PATH and
+    NOT the ID / ParentID relation. This is because it is possible
+    for NewEntityData to not have assigned UIDs
+
+    The values of the keys are as below:
+
+    if ParentEntity is an IntermediateDir:
+        TreeDict[ParentEntity] = ParentEntitysChildrenList is a
+        TreeDict containing as keys all the children of ParentEntity
+        (each of which must be a directory entity). The values
+        will be a ChildrenList corresponding to the children of
+        the keys.
+
+    if ParentEntity is an ExperimentDir:
+        TreeDict[ParentEntity] = ParentEntitysChildrenList is a
+        list of entities representing the children (in this case
+        experiments) of ParentEntity.
+
+    for key 0:
+        TopLevelParents represents all parents which are
+        NOT in NewEntityData (i.e. are the deepest (from root) parents
+        who are in CurrentEntityData). Every element in NewEntityData
+        is a child of at least one element from TopLevelParents because
+        the Top Level Directory is a part of CurrentEntityData
+
+        In the Event that CurrentEntityData is NOT Specified, (i.e. None)
+        Then A Spurious parent entity path as dirname of the entity will
+        be created and used instead.
+    
+    At any time using Pythons Copy-by-object-id policy, we ensure that
+    the following Equivalence is maintained
+
+    TreeDict[EntitysParent][Entity] == TreeDict[Entity]
+
+    i.e. There is only one copy of ChildrenList in the tree and
+    TreeDict[..][..][..][Entity] points to it no matter what the ..'s
+    are.
+    """
 
     # Assuming that children come after parents
     # Construct Tree as dict of {Entity: dict}
     TreeDict = {0:{}}
-    CurrentEntityDict = {Ent.ID:Ent for Ent in CurrentEntityData}
-    NewEntityDict = {Ent.ID:Ent for Ent in NewEntityData}
+    CurrentEntityParentDict = {
+        Ent.Path:Ent
+        for Ent in CurrentEntityData
+        if Ent.Type in ['IntermediateDir', 'ExperimentDir']
+    }
+    NewEntityParentDict = {
+        Ent.Path:Ent
+        for Ent in NewEntityData
+        if Ent.Type in ['IntermediateDir', 'ExperimentDir']
+    }
 
     for Entity in NewEntityData:
-        if Entity.ParentID not in NewEntityDict:
-            ParentEntity = CurrentEntityDict[Entity.ParentID]
+        
+        if Entity.Type == 'Experiment':
+            ParentPath = Entity.Path
+            ParentType = 'ExperimentDir'
+        else:
+            ParentPath = path.dirname(Entity.Path)
+            ParentType = 'IntermediateDir'
+
+        if ParentPath not in NewEntityParentDict:
+            if ParentPath not in CurrentEntityParentDict:
+                ParentEntity = Entities.ExpRepoEntity(
+                    ID=Entity.ParentID,
+                    ParentID=Entity.ParentID,
+                    Type=ParentType,
+                    Path=ParentPath
+                )
+            else:
+                ParentEntity = CurrentEntityParentDict[ParentPath]
+
             TreeDict[ParentEntity] = {}
             TreeDict[0][ParentEntity] = TreeDict[ParentEntity]
         else:
-            ParentEntity = NewEntityDict[Entity.ParentID]
+            ParentEntity = NewEntityParentDict[ParentPath]
 
         if ParentEntity.Type == 'IntermediateDir':
             if Entity.Type == 'ExperimentDir':

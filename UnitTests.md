@@ -1,4 +1,6 @@
 # Unit Test 1
+clear'
+clear\
 clear --noconf
 book dir A --inter --reltop --noconf
 book dir A/B --reltop
@@ -13,3 +15,7 @@ unbook exp A/C --n3 --force
 n
 unbook exp A/C --n3 --reltop --force --noconf
 list
+book exp A/B --n4 --reltop --noconf
+list > TempText
+confirm > TempText2
+Y

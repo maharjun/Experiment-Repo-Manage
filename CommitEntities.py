@@ -297,7 +297,7 @@ def PrepareTreeandIndex(CurrentEntityData, NewEntityDataWithID, ExperimentRepo):
 
     # Get the tree, and {ID:Entity} Dict corresponding to
     # NewEntityData
-    EntityTree = ManipEntities.getTreeFromNewEntities(CurrentEntityData, NewEntityDataWithID)
+    EntityTree = ManipEntities.getTreeFromNewEntities(NewEntityDataWithID)
 
     try:
         # create entities in working tree
