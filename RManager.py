@@ -5,6 +5,7 @@ import re
 import textwrap
 import BasicUtils as BU
 from BasicUtils import errprint, conprint
+import Entities
 from git import Repo
 from enum import Enum
 import BookIDs
@@ -636,7 +637,7 @@ class RepoManageConsole(Cmd):
         if not os.path.isdir(TempFilesDir):
             os.mkdir(TempFilesDir)
         with open(os.path.join(TempFilesDir, 'CurrentSession.yml'), 'w') as Fout:
-            BookIDs.FlushData(Fout, self.NewEntityData)
+            Entities.FlushData(Fout, self.NewEntityData)
         
         conprint('(Restarting)')
         self.preloop()
@@ -650,7 +651,7 @@ class RepoManageConsole(Cmd):
             if not os.path.isdir(TempFilesDir):
                 os.mkdir(TempFilesDir)
             with open(os.path.join(TempFilesDir, 'CurrentSession.yml'), 'w') as Fout:
-                BookIDs.FlushData(Fout, self.NewEntityData)
+                Entities.FlushData(Fout, self.NewEntityData)
         conprint('(Exiting)')
         return True
 

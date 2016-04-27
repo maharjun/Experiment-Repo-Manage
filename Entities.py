@@ -1,3 +1,6 @@
+import textwrap
+
+
 class ExpRepoEntity:
     """
     This class basically defines the structure for the entries in the
@@ -84,3 +87,25 @@ def getPrettyYAMLDump(EntityList):
 
     PrettyYAMLDump = "\n".join(EntityYAMLStrList)
     return PrettyYAMLDump
+
+
+def FlushData(Stream, EntityList):
+    """
+    This writes the given EntityList into the stream specified.
+    """
+    
+    with Stream as Fout:
+
+        # Writing the Number of Entities
+        # and the entity data
+
+        Fout.write(textwrap.dedent(
+            """\
+            NumEntities: {EntityCount}
+
+            EntityData:
+
+            """.format(EntityCount=len(EntityList))
+        ))
+        if EntityList:
+            Fout.write(getPrettyYAMLDump(EntityList))

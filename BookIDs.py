@@ -287,30 +287,6 @@ def getSessionBookingsString(NewEntityData):
     return getDirStringList(DisplayDict)
 
 
-def FlushData(Stream, EntityList):
-    """
-    This writes the current session bookings (the ones
-    that havent been committed yet) into the stream
-    specified.
-    """
-    
-    with Stream as Fout:
-
-        # Writing the Number of Entities
-        # and the entity data
-
-        Fout.write(textwrap.dedent(
-            """\
-            NumEntities: {EntityCount}
-
-            EntityData:
-
-            """.format(EntityCount=len(EntityList))
-        ))
-        if EntityList:
-            Fout.write(Entities.getPrettyYAMLDump(EntityList))
-
-
 def AssignUIDs(NewEntityData, CurrentEntityData):
     
     CurrentNumberBooked = len(CurrentEntityData)
@@ -664,7 +640,7 @@ def PrepareTreeandIndex(CurrentEntityData, NewEntityDataWithID, ExperimentRepo):
         NewEntitiesAppended = CurrentEntityData + NewEntityDataWithID
         TopDir = ExperimentRepo.working_tree_dir
         with open(path.join(TopDir, 'EntityData.yml'), 'w') as Fout:
-            FlushData(Fout, NewEntitiesAppended)
+            Entities.FlushData(Fout, NewEntitiesAppended)
         ExperimentRepo.index.add(['EntityData.yml'])
     except:
         errprint("\nEntity Creation Failed.")
