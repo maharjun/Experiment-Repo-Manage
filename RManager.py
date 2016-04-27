@@ -8,7 +8,7 @@ from BasicUtils import errprint, conprint
 import Entities
 from git import Repo
 from enum import Enum
-import BookIDs
+import ManipEntities
 import sys
 import colorama as cr
 from io import StringIO
@@ -200,7 +200,7 @@ class RepoManageConsole(Cmd):
         
         if Status == PromptStatus.SUCCESS:
             if isDirectory:
-                BookingSuccess = BookIDs.BookDirectory(
+                BookingSuccess = ManipEntities.BookDirectory(
                     Path, Type,
                     self.NewEntityData, self.CurrentEntityData,
                     Force=Force)
@@ -215,7 +215,7 @@ class RepoManageConsole(Cmd):
                     errprint("  Type: {Type}".format(Type=Type))
                     Status = PromptStatus.INVALID_ARG
             else:
-                BookingSuccess = BookIDs.BookExperiments(
+                BookingSuccess = ManipEntities.BookExperiments(
                         Path, self.NewEntityData, self.CurrentEntityData,
                         NumofExps=NumExps, Force=Force)
                 
@@ -360,7 +360,7 @@ class RepoManageConsole(Cmd):
         
         if Status == PromptStatus.SUCCESS:
             if isDirectory:
-                UnBookingSuccess = BookIDs.UnBookDirectory(
+                UnBookingSuccess = ManipEntities.UnBookDirectory(
                                         Path, self.NewEntityData,
                                         Force=Force)
                 
@@ -372,7 +372,7 @@ class RepoManageConsole(Cmd):
                     errprint("  Path: {Path}".format(Path=Path))
                     Status = PromptStatus.INVALID_ARG
             else:
-                UnBookingSuccess = BookIDs.UnBookExperiments(
+                UnBookingSuccess = ManipEntities.UnBookExperiments(
                             Path, self.NewEntityData,
                             NumofExps=NumExps)
                 
@@ -393,7 +393,7 @@ class RepoManageConsole(Cmd):
         the directories and experiments that have been booked in the current session,
         (i.e. booked and not yet confirmed).
         """
-        print(BookIDs.getSessionBookingsString(self.NewEntityData))
+        print(ManipEntities.getSessionBookingsString(self.NewEntityData))
     
     def do_clear(self, arg):
         """
@@ -439,7 +439,7 @@ class RepoManageConsole(Cmd):
         """
         
         # print the listing of the bookings
-        conprint(BookIDs.getSessionBookingsString(self.NewEntityData))
+        conprint(ManipEntities.getSessionBookingsString(self.NewEntityData))
         
         Args = shlex.split(arg)
         ConfNeeded = True
@@ -456,7 +456,7 @@ class RepoManageConsole(Cmd):
                 isConfirmed = False
         
         if isConfirmed:
-            isBookingsConfirmed = BookIDs.ConfirmBookings(
+            isBookingsConfirmed = ManipEntities.ConfirmBookings(
                 self.CurrentEntityData,
                 self.NewEntityData,
                 Repo(self.TopLevelDir))
@@ -558,7 +558,7 @@ class RepoManageConsole(Cmd):
         CurrEntityDataFile = os.path.join(self.TopLevelDir, 'EntityData.yml')
         if os.path.isfile(CurrEntityDataFile):
             with open(CurrEntityDataFile, 'r') as Fin:
-                self.CurrentEntityData = BookIDs.getEntityDataFromStream(Fin)
+                self.CurrentEntityData = ManipEntities.getEntityDataFromStream(Fin)
         else:
             errprint('The file EntityData.yml is missing')
             self.CurrentEntityData = None
@@ -575,7 +575,7 @@ class RepoManageConsole(Cmd):
         NewEntityDataFile  = os.path.join(self.ThisModuleDir, 'TempFiles/CurrentSession.yml')
         if self.InitSuccessful and os.path.isfile(NewEntityDataFile):
             with open(NewEntityDataFile, 'r') as Fin:
-                self.NewEntityData = BookIDs.getEntityDataFromStream(Fin)
+                self.NewEntityData = ManipEntities.getEntityDataFromStream(Fin)
         else:
             self.NewEntityData = []
         
@@ -652,6 +652,7 @@ class RepoManageConsole(Cmd):
                 Entities.FlushData(Fout, self.NewEntityData)
         conprint('(Exiting)')
         return True
+
 
 if __name__ == '__main__':
     cr.init()
