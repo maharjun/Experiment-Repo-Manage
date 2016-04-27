@@ -4,7 +4,7 @@ import shlex
 import re
 import textwrap
 import BasicUtils as BU
-from BasicUtils import errprint
+from BasicUtils import errprint, conprint
 from git import Repo
 from enum import Enum
 import BookIDs
@@ -29,16 +29,16 @@ class RepoManageConsole(Cmd):
     ThisModuleDir = ''
     NewEntityData = []
     CurrentEntityData = []
-
+    
     ValidCommandList = ['book', 'unbook', 'list', 'clear', 'confirm', 'restart', 'exit']
-
+    
     # This is a Flag. If it is set, then any call to exit will exit
     # without saving the session. This cannot be set by any command.
     # it can only be set when, during the execution of one of the
     # commands, we encounter an error in which we require to terminate
     # the prompt but result saving would be undefined.
     SaveSession = True
-
+    
     # This flag indicates whether the preloop initialization went
     # smoothly. It is assumed to be true and is set to false in the
     # preloop function if initialization fails.
@@ -46,7 +46,7 @@ class RepoManageConsole(Cmd):
     
     # TTD:
     # Find out the variables that need to be global
-
+    
     # ----- Top Level Interface commands -----
     def do_book(self, arg):
         """\
@@ -154,10 +154,10 @@ class RepoManageConsole(Cmd):
         else:
             errprint("Path to be booked hasn't been specified\n")
             Status = PromptStatus.INVALID_ARG
-
+        
         if Status == PromptStatus.SUCCESS and NeedConf:
             if isDirectory:
-                print(textwrap.dedent(("""
+                conprint(textwrap.dedent(("""
                     Please confirm your input (confirm: capital Y, not confirm: anything else)
                       
                       Path          : {Path}
@@ -170,16 +170,16 @@ class RepoManageConsole(Cmd):
                 if Confirmation in ['y', 'Y']:
                     Status = PromptStatus.SUCCESS
                 else:
-                    print("Booking Cancelled")
+                    conprint("Booking Cancelled")
                     Status = PromptStatus.ITER_OVER
             else:
-                print(textwrap.dedent(("""
+                conprint(textwrap.dedent(("""
                     Please confirm your input (confirm: capital Y, not confirm: anything else)
                       
                       Path               : {Path}
                       Type               : {Type}
                       No. of Experiments : {NExp}
-
+                      
                       Force              : {Force}
                     
                     """).format(Path=Path,Type=Type,Force=Force,NExp=NumExps)))
@@ -196,7 +196,7 @@ class RepoManageConsole(Cmd):
                     Path, Type,
                     self.NewEntityData, self.CurrentEntityData,
                     Force=Force)
-
+                
                 if BookingSuccess:
                     print("The following booking was successful:\n")
                     print("  Path: {Path}".format(Path=Path))
@@ -210,7 +210,7 @@ class RepoManageConsole(Cmd):
                 BookingSuccess = BookIDs.BookExperiments(
                         Path, self.NewEntityData, self.CurrentEntityData,
                         NumofExps=NumExps, Force=Force)
-
+                
                 if BookingSuccess:
                     print("The following booking was successful:\n")
                     print("  Path: {Path}".format(Path=Path))
@@ -222,7 +222,7 @@ class RepoManageConsole(Cmd):
                     errprint("  Type: {Type}".format(Type=Type))
                     errprint("  NExp: {NExp}\n".format(NExp=NumExps))
                     Status = PromptStatus.INVALID_ARG
-
+    
     def do_unbook(self, arg):
         # Do unbooking here
         """\
@@ -310,7 +310,7 @@ class RepoManageConsole(Cmd):
             except ValueError:
                 errprint("It appears as though the directory was invalid\n")
                 Status = PromptStatus.INVALID_ARG
-
+        
         elif Path:
             errprint("The Path {Path} is invalid. Paths must satisfy the following regex\n".format(Path=Path))
             errprint(BU.isValidPathREStr)
@@ -318,10 +318,10 @@ class RepoManageConsole(Cmd):
         else:
             errprint("Path to be booked hasn't been specified\n")
             Status = PromptStatus.INVALID_ARG
-
+        
         if Status == PromptStatus.SUCCESS and NeedConf:
             if isDirectory:
-                print(textwrap.dedent(("""
+                conprint(textwrap.dedent(("""
                     Please confirm your input (confirm: Y, not confirm: anything else)
                       
                       Path          : {Path}
@@ -336,12 +336,12 @@ class RepoManageConsole(Cmd):
                     print("Booking Cancelled")
                     Status = PromptStatus.ITER_OVER
             else:
-                print(textwrap.dedent(("""
+                conprint(textwrap.dedent(("""
                     Please confirm your input (confirm: capital Y, not confirm: anything else)
                       
                       Path               : {Path}
                       No. of Experiments : {NExp}
-
+                      
                       Force              : {Force}
                     
                     """).format(Path=Path,Force=Force,NExp=NumExps)))
@@ -379,7 +379,7 @@ class RepoManageConsole(Cmd):
                     errprint("  Path: {Path}".format(Path=Path))
                     errprint("  NExp: {NExp}\n".format(NExp=NumExps))
                     Status = PromptStatus.INVALID_ARG
-
+    
     def do_list(self, arg):
         # Do listing here
         """
@@ -387,19 +387,19 @@ class RepoManageConsole(Cmd):
         the directories and experiments that have been booked in the current session,
         (i.e. booked and not yet confirmed).
         """
-        BookIDs.ListSessionBookings(self.NewEntityData)
-
+        print(BookIDs.getSessionBookingsString(self.NewEntityData))
+    
     def do_clear(self, arg):
         """
         Command syntax
-
+          
           clear [--noconf]
-
+        
         This command is used to clear the current booking session. i.e. all the
         booked entities that have no been confirmed will be unbooked. It will ask
         for a confirmation unless --noconf is specified.
         """
-
+        
         Status = PromptStatus.SUCCESS
         Args = shlex.split(arg)
         ConfNeeded = True
@@ -411,28 +411,29 @@ class RepoManageConsole(Cmd):
                     errprint("Invalid option (see help): {Option}".format(Option=arg))
                     Status = PromptStatus.INVALID_ARG
                     break
-
+        
         if Status == PromptStatus.SUCCESS and ConfNeeded:
             ConfirmationStr = BU.getNonEmptyInput("You Sure? (Y/n): ")
             if ConfirmationStr not in ['y', 'Y']:
                 Status = PromptStatus.ITER_OVER
-
+        
         if Status == PromptStatus.SUCCESS:
             self.NewEntityData = []
-
+    
     def do_confirm(self, arg):
         """
         Command syntax:
-
+          
           confirm [--noconf]
-
+        
         This command is to confirm the bookings in the current session. i.e. all the
         entities (directories/experiments) booked in the current session will be
         committed. The list command will be invoked for confirmation unless --noconf
         is specified.
         """
-
-        self.do_list('')
+        
+        # print the listing of the bookings
+        conprint(BookIDs.getSessionBookingsString(self.NewEntityData))
         
         Args = shlex.split(arg)
         ConfNeeded = True
@@ -441,13 +442,13 @@ class RepoManageConsole(Cmd):
         elif Args:
             errprint("\nInvalid Argument {Arg}".format(Arg=Args[0]))
             return
-
+        
         isConfirmed = True
         if ConfNeeded:
             Confirmation = BU.getNonEmptyInput("You Sure you want to commit the above (Y/n)? ")
             if Confirmation not in ['y', 'Y']:
                 isConfirmed = False
-
+        
         if isConfirmed:
             isBookingsConfirmed = BookIDs.ConfirmBookings(
                 self.CurrentEntityData,
@@ -461,11 +462,11 @@ class RepoManageConsole(Cmd):
                 self.do_restart("")
             # else:
             #     Do nothing
-
+    
     def preloop(self):
         self.ThisModuleDir = BU.getFrameDir()
         self.TopLevelDir = os.path.normpath(os.path.join(self.ThisModuleDir, '..'))
-
+        
         # Read Currently confirmed Entity Data
         CurrEntityDataFile = os.path.join(self.TopLevelDir, 'EntityData.yml')
         if os.path.isfile(CurrEntityDataFile):
@@ -474,7 +475,7 @@ class RepoManageConsole(Cmd):
         else:
             errprint('The file EntityData.yml is missing')
             self.CurrentEntityData = None
-
+        
         # See if read was successful
         if self.CurrentEntityData is None:
             errprint(
@@ -482,7 +483,7 @@ class RepoManageConsole(Cmd):
                 'from the file {0}. INITIALIZATION FAILED\n'.format('EntityData.yml')
             )
             self.InitSuccessful = False
-
+        
         # try to read the Current Session (new unconfirmed) Entities
         NewEntityDataFile  = os.path.join(self.ThisModuleDir, 'TempFiles/CurrentSession.yml')
         if self.InitSuccessful and os.path.isfile(NewEntityDataFile):
@@ -490,33 +491,33 @@ class RepoManageConsole(Cmd):
                 self.NewEntityData = BookIDs.getEntityDataFromStream(Fin)
         else:
             self.NewEntityData = []
-
+        
         if self.NewEntityData is None:
             errprint(
                 'It appears that we cannot read the currently uncommitted Entities\n',
                 'from the file {0}. INITIALIZATION FAILED\n'.format('CurrentSession.yml'))
             self.InitSuccessful = False
-
+        
         # if the initialization is not successful, call exit without saving
         if not self.InitSuccessful:
             self.SaveSession = False
             self.intro = ''
             self.cmdqueue.append('exit')
-
+    
     def emptyline(self):
         """
         This is the method called when the imput is an empty line.
         Here we do absolutely nothing
         """
-
+        
         return False  # i.e. dont terminate console
-
+    
     def default(self, line):
         Args = shlex.split(line)
         Command = Args[0]
         errprint("The command '{Cmd}' is undefined\n".format(Cmd=Command))
         self.do_help([])
-
+    
     def do_help(self, arg):
         'List available commands with "help" or detailed help with "help cmd".'
         if arg:
@@ -530,39 +531,39 @@ class RepoManageConsole(Cmd):
         else:
             # if arg is not specified display the default Cmd help instructions
             Cmd.do_help(self, [])
-
+    
     def do_restart(self, arg):
         """
         Command Syntax:
-
+            
             restart
-
+        
         This is equivalent to running exit and starting the console again.
         This has the result of updating CurrentSession.yml with the new
         NewEntityData without having to close the console
         """
         
-        print('\n(Saving current session)')
+        conprint('\n(Saving current session)')
         TempFilesDir = os.path.join(self.ThisModuleDir, 'TempFiles')
         if not os.path.isdir(TempFilesDir):
             os.mkdir(TempFilesDir)
         with open(os.path.join(TempFilesDir, 'CurrentSession.yml'), 'w') as Fout:
             BookIDs.FlushData(Fout, self.NewEntityData)
-
-        print('(Restarting)')
+        
+        conprint('(Restarting)')
         self.preloop()
-
+    
     def do_exit(self, arg):
         'Exit (Saving current session)'
         
         if self.SaveSession:
-            print('(Saving current session)')
+            conprint('(Saving current session)')
             TempFilesDir = os.path.join(self.ThisModuleDir, 'TempFiles')
             if not os.path.isdir(TempFilesDir):
                 os.mkdir(TempFilesDir)
             with open(os.path.join(TempFilesDir, 'CurrentSession.yml'), 'w') as Fout:
                 BookIDs.FlushData(Fout, self.NewEntityData)
-        print('(Exiting)')
+        conprint('(Exiting)')
         return True
 
 if __name__ == '__main__':

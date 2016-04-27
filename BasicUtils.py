@@ -32,18 +32,44 @@ def debug_print(PrintString):
     print(PrintString)
 
 
+def errprint(PrintString):
+    """
+    This function prints to the error stream
+    """
+    print(PrintString,file=sys.stderr)
+
+
+def conprint(PrintString):
+    """
+    This function prints to the console output (original stdout)
+    irrespective of the value of sys.stdout (which could be different
+    due to redirection)
+    """
+    print(PrintString,file=sys.__stdout__)
+
+
+def teeprint(PrintString):
+    """
+    This function prints to the console as well as the stdout if
+    it is different
+    """
+    if sys.stdout == sys.__stdout__:
+        print(PrintString)
+    else:
+        print(PrintString)
+        conprint(PrintString)
+
+
 def getNonEmptyInput(InputPrompt):
     Input = ''
     ReceivedInput = False
     while not ReceivedInput:
-        Input = input(InputPrompt)
+        sys.__stdout__.write(InputPrompt)
+        sys.__stdout__.flush()
+        Input = input()
         if Input.strip():
             ReceivedInput = True
     return Input
-
-
-def errprint(PrintString):
-    print(PrintString,file=sys.stderr)
 
 
 def ProcessPath(Path, ExperimentTopDir, RelativetoTop=False):

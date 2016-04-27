@@ -5,7 +5,7 @@ import Entities
 import yaml
 import textwrap
 import copy
-from BasicUtils import errprint
+from BasicUtils import errprint, conprint
 from git import remote
 from collections import Counter
 
@@ -158,7 +158,7 @@ def UnBookExperiments(Path, NewEntityData, NumofExps=None):
     if NumofExps is None:
         NumofExps = len(CurrPathExps)
     elif NumofExps > len(CurrPathExps):
-        print((
+        conprint((
             "The number of experiments to be deleted ({0}) exceeds the \n"
             "total number of experiments with specified path ({1}).\n"
             "Truncating the number accordingly.\n"
@@ -227,7 +227,7 @@ def BookExperiments(Path, NewEntityData, CurrentEntityData,
     return BookingSuccessful
 
 
-def ListSessionBookings(NewEntityData):
+def getSessionBookingsString(NewEntityData):
     
     SortedEntityData = sorted(
         NewEntityData,
@@ -284,7 +284,7 @@ def ListSessionBookings(NewEntityData):
                 )  # the above is basically tabbing the output by 2 spaces
         return "\n".join(sorted(ReturnStringList))
     
-    print(getDirStringList(DisplayDict))
+    return getDirStringList(DisplayDict)
 
 
 def FlushData(Stream, EntityList):
@@ -756,7 +756,7 @@ def CommitandPush(CommitMessage, ExperimentRepo):
         )
         ExperimentRepo.heads.master.reset('HEAD~1')
     elif MasterRetList[0].flags & remote.PushInfo.FAST_FORWARD:
-        print("Fast Forward Merge was successful\n")
+        conprint("\nFast Forward Merge was successful")
         PushSuccess = True
     else:
         errprint("Wierd shits goin down")
@@ -804,7 +804,7 @@ def ConfirmBookings(CurrentEntityData, NewEntityData, ExperimentRepo):
             ExperimentRepo.head.reset(working_tree=True)
             errprint("\nReset Complete.")
     else:
-        print("\nConfirmation of Bookings successful:")
+        conprint("\nConfirmation of Bookings successful:")
         print("\n" + CommitMessage)
 
     return isSuccess

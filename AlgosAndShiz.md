@@ -95,13 +95,3 @@ Before the commit procedure, there must be no changes in the working tree / inde
                 read explog.yml into ExpList
             else,
                 ExpList = []
-
-
-###   Editing Algos:
-
-Various features required:
-
-Ability to browse through experiments:
-
-1.  Ability to list IDs and Titles of all experiments in a folder.
-2.  Ability to get the text of a particular experiment and transfer it to a file
