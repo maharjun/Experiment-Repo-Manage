@@ -3,17 +3,17 @@ import os
 import shlex
 import re
 import textwrap
-import BasicUtils as BU
-from BasicUtils import errprint, conprint
 import Entities
 from git import Repo
 from enum import Enum
 import ManipEntities
 import CommitEntities
-import sys
 import colorama as cr
 from io import StringIO
 
+import BasicUtils as BU
+from BasicUtils import errprint, conprint, outprint
+import subsys
 
 class PromptStatus(Enum):
     """
@@ -196,7 +196,7 @@ class RepoManageConsole(Cmd):
                 if Confirmation in ['y', 'Y']:
                     Status = PromptStatus.SUCCESS
                 else:
-                    print("\nBooking Cancelled")
+                    outprint("\nBooking Cancelled")
                     Status = PromptStatus.ITER_OVER
         
         if Status == PromptStatus.SUCCESS:
@@ -207,9 +207,9 @@ class RepoManageConsole(Cmd):
                     Force=Force)
                 
                 if BookingSuccess:
-                    print("\nThe following booking was successful:\n")
-                    print("  Path: {Path}".format(Path=Path))
-                    print("  Type: {Type}".format(Type=Type))
+                    outprint("\nThe following booking was successful:\n")
+                    outprint("  Path: {Path}".format(Path=Path))
+                    outprint("  Type: {Type}".format(Type=Type))
                 else:
                     errprint("\nThe following booking was unsuccessful\n")
                     errprint("  Path: {Path}".format(Path=Path))
@@ -221,10 +221,10 @@ class RepoManageConsole(Cmd):
                         NumofExps=NumExps, Force=Force)
                 
                 if BookingSuccess:
-                    print("\nThe following booking was successful:\n")
-                    print("  Path: {Path}".format(Path=Path))
-                    print("  Type: {Type}".format(Type=Type))
-                    print("  NExp: {NExp}".format(NExp=NumExps))
+                    outprint("\nThe following booking was successful:\n")
+                    outprint("  Path: {Path}".format(Path=Path))
+                    outprint("  Type: {Type}".format(Type=Type))
+                    outprint("  NExp: {NExp}".format(NExp=NumExps))
                 else:
                     errprint("\nThe following booking was unsuccessful\n")
                     errprint("  Path: {Path}".format(Path=Path))
@@ -341,7 +341,7 @@ class RepoManageConsole(Cmd):
                 if Confirmation in ['y', 'Y']:
                     Status = PromptStatus.SUCCESS
                 else:
-                    print("\nBooking Cancelled")
+                    outprint("\nBooking Cancelled")
                     Status = PromptStatus.ITER_OVER
             else:
                 conprint(textwrap.dedent(("""
@@ -356,7 +356,7 @@ class RepoManageConsole(Cmd):
                 if Confirmation in ['y', 'Y']:
                     Status = PromptStatus.SUCCESS
                 else:
-                    print("\nBooking Cancelled")
+                    outprint("\nBooking Cancelled")
                     Status = PromptStatus.ITER_OVER
         
         if Status == PromptStatus.SUCCESS:
@@ -366,8 +366,8 @@ class RepoManageConsole(Cmd):
                                         Force=Force)
                 
                 if UnBookingSuccess:
-                    print("\nThe following Directory (and children) were successfully unbooked:\n")
-                    print("  Path: {Path}".format(Path=Path))
+                    outprint("\nThe following Directory (and children) were successfully unbooked:\n")
+                    outprint("  Path: {Path}".format(Path=Path))
                 else:
                     errprint("\nThe following unbooking was unsuccessful\n")
                     errprint("  Path: {Path}".format(Path=Path))
@@ -378,9 +378,9 @@ class RepoManageConsole(Cmd):
                             NumofExps=NumExps)
                 
                 if UnBookingSuccess:
-                    print("\nThe following experiments were successfully unbooked:\n")
-                    print("  Path: {Path}".format(Path=Path))
-                    print("  NExp: {NExp}".format(NExp=NumExps))
+                    outprint("\nThe following experiments were successfully unbooked:\n")
+                    outprint("  Path: {Path}".format(Path=Path))
+                    outprint("  NExp: {NExp}".format(NExp=NumExps))
                 else:
                     errprint("\nThe following booking was unsuccessful\n")
                     errprint("  Path: {Path}".format(Path=Path))
@@ -394,7 +394,7 @@ class RepoManageConsole(Cmd):
         the directories and experiments that have been booked in the current session,
         (i.e. booked and not yet confirmed).
         """
-        print(ManipEntities.getSessionBookingsString(self.NewEntityData))
+        outprint(ManipEntities.getSessionBookingsString(self.NewEntityData))
     
     def do_clear(self, arg):
         """
@@ -484,8 +484,8 @@ class RepoManageConsole(Cmd):
             Args = shlex.split(line)
         except ValueError as V:
             errprint("\nUnknown Syntax see below for more details:")
-            print("")
-            print(V.args[0])
+            outprint("")
+            outprint(V.args[0])
             line = ""
             Args = []
 
@@ -525,11 +525,12 @@ class RepoManageConsole(Cmd):
         """
         
         if self.isRedirNeeded:
+            PrevStdOut = subsys.stdout
             TempStream = StringIO()
-            sys.stdout = TempStream
+            subsys.stdout = TempStream
             try:
                 RetValue = Cmd.onecmd(self, line)
-                OutputString = TempStream.getvalue()
+                OutputString = BU.stripAnsiSeqs(TempStream.getvalue())
                 try:
                     with open(self.RedirFilePath, 'w') as Fout:
                         Fout.write(OutputString)
@@ -539,7 +540,7 @@ class RepoManageConsole(Cmd):
                     )
             finally:
                 TempStream.close()
-                sys.stdout = sys.__stdout__
+                subsys.stdout = PrevStdOut
         else:
             RetValue = Cmd.onecmd(self, line)
 
@@ -657,4 +658,5 @@ class RepoManageConsole(Cmd):
 
 if __name__ == '__main__':
     cr.init()
-    RepoManageConsole().cmdloop()
+    subsys.init()
+    RepoManageConsole(stdin=subsys.stdin, stdout=subsys.stdcon).cmdloop()

@@ -1,6 +1,6 @@
 import os
 import re
-import sys
+import subsys
 import inspect
 
 isValidPathREStr = r"""
@@ -29,16 +29,25 @@ isValidPathREStr = r"""
 
 isValidPathRE = re.compile(isValidPathREStr,re.VERBOSE)
 
+isEscapeSeqRE = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
+
 
 def debug_print(PrintString):
     print(PrintString)
+
+
+def outprint(PrintString):
+    """
+    This function prints to the output stream
+    """
+    print(PrintString,file=subsys.stdout)
 
 
 def errprint(PrintString):
     """
     This function prints to the error stream
     """
-    print(PrintString,file=sys.stderr)
+    print(PrintString,file=subsys.stderr)
 
 
 def conprint(PrintString):
@@ -47,7 +56,7 @@ def conprint(PrintString):
     irrespective of the value of sys.stdout (which could be different
     due to redirection)
     """
-    print(PrintString,file=sys.__stdout__)
+    print(PrintString,file=subsys.stdcon)
 
 
 def teeprint(PrintString):
@@ -55,19 +64,24 @@ def teeprint(PrintString):
     This function prints to the console as well as the stdout if
     it is different
     """
-    if sys.stdout == sys.__stdout__:
-        print(PrintString)
+    if subsys.stdout == subsys.stdcon:
+        outprint(PrintString)
     else:
-        print(PrintString)
+        outprint(PrintString)
         conprint(PrintString)
+
+
+def stripAnsiSeqs(String):
+    StrippedString = re.sub(isEscapeSeqRE, "", String)
+    return StrippedString
 
 
 def getNonEmptyInput(InputPrompt):
     Input = ''
     ReceivedInput = False
     while not ReceivedInput:
-        sys.__stdout__.write(InputPrompt)
-        sys.__stdout__.flush()
+        subsys.stdcon.write(InputPrompt)
+        subsys.stdcon.flush()
         Input = input()
         if Input.strip():
             ReceivedInput = True

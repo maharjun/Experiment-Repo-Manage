@@ -1,7 +1,7 @@
 from os import path
 import os
 
-from BasicUtils import conprint, errprint
+from BasicUtils import conprint, errprint, outprint
 from git import remote
 import ManipEntities
 import Entities
@@ -450,6 +450,6 @@ def ConfirmBookings(CurrentEntityData, NewEntityData, ExperimentRepo):
             errprint("\nReset Complete.")
     else:
         conprint("\nConfirmation of Bookings successful:")
-        print("\n" + CommitMessage)
+        outprint("\n" + CommitMessage)
 
     return isSuccess
