@@ -390,11 +390,30 @@ class RepoManageConsole(Cmd):
     def do_list(self, arg):
         # Do listing here
         """
+        Command Syntax:
+
+          list [--nocolor]
+
         This command takes no arguments. It simply outputs (in heirarchial format),
         the directories and experiments that have been booked in the current session,
-        (i.e. booked and not yet confirmed).
+        (i.e. booked and not yet confirmed). Normally, unless --nocolor is specified,
+        the output is colored.
         """
-        outprint(ManipEntities.getSessionBookingsString(self.NewEntityData))
+
+        Status = PromptStatus.SUCCESS
+        Args = shlex.split(arg)
+        Color = True
+        if Args:
+            for arg in Args:
+                if arg == '--nocolor':
+                    Color = False
+                else:
+                    errprint("\nInvalid option (see help): {Option}".format(Option=arg))
+                    Status = PromptStatus.INVALID_ARG
+                    break
+        
+        if Status == PromptStatus.SUCCESS:
+            outprint(ManipEntities.getSessionBookingsString(self.NewEntityData, Color=Color))
     
     def do_clear(self, arg):
         """
@@ -440,7 +459,7 @@ class RepoManageConsole(Cmd):
         """
         
         # print the listing of the bookings
-        conprint(ManipEntities.getSessionBookingsString(self.NewEntityData))
+        conprint(ManipEntities.getSessionBookingsString(self.NewEntityData, Color=True))
         
         Args = shlex.split(arg)
         ConfNeeded = True

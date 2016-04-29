@@ -7,7 +7,7 @@ import textwrap
 import copy
 from BasicUtils import errprint, conprint
 from collections import Counter
-
+import colorama as cr
 
 def UnBookEntity(Entities2Unbook, NewEntityData):
     '''
@@ -226,12 +226,12 @@ def BookExperiments(Path, NewEntityData, CurrentEntityData,
     return BookingSuccessful
 
 
-def getSessionBookingsString(NewEntityData):
+def getSessionBookingsString(NewEntityData, Color=False):
     
     # get tree for NewEntityData
     NewEntityTree = getTreeFromNewEntities(NewEntityData)
 
-    def getContentString(EntityTree, IsInit):
+    def getContentString(EntityTree, IsInit, Color=False):
         """
         This function returns a string representing the subelements of the Tree
         EntityTree. The Path ParentPath is stripped from the the Paths of the
@@ -240,6 +240,10 @@ def getSessionBookingsString(NewEntityData):
         
         ReturnStringList = []
         ParentType = 'IntermediateDir' if type(EntityTree) is dict else 'ExperimentDir'
+
+        # initializing color ANSI Seqs
+        ColorPrefix = cr.Fore.YELLOW if Color and not IsInit else ""
+        ColorSuffix = cr.Style.RESET_ALL if Color and not IsInit else ""
 
         if ParentType == 'IntermediateDir':
             for (Entity, EntityChildren) in EntityTree.items():
@@ -251,16 +255,25 @@ def getSessionBookingsString(NewEntityData):
                 if StrippedEntityPath == '':
                     StrippedEntityPath = "<Top Dir>"
 
+                # add line corresponding to current element
                 ReturnStringList.append(StrippedEntityPath + "/\n")
+                ReturnStringList[-1] = ColorPrefix + ReturnStringList[-1] + ColorSuffix
+
+                # concatenate lines corresponding to subelements to this string
+                # note that the above line is not to be separated from the
+                # subelements string as ReturnStringList is sorted below.
                 ReturnStringList[-1] += (
                     "  " +
-                    getContentString(EntityChildren, False).replace("\n", "\n  ")
+                    getContentString(EntityChildren, False, Color=Color).replace("\n", "\n  ")
                 )  # the above is basically tabbing the output by 2 spaces
         else:
             ReturnStringList.append("Number of Exps: {NExps}".format(NExps=len(EntityTree)))
+            ReturnStringList[-1] = ColorPrefix + ReturnStringList[-1] + ColorSuffix
+
+        # Join Lines and return
         return "\n".join(sorted(ReturnStringList))
     
-    return getContentString(NewEntityTree[0], IsInit=True)
+    return getContentString(NewEntityTree[0], IsInit=True, Color=Color)
 
 
 def AssignUIDs(NewEntityData, CurrentEntityData):

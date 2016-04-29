@@ -14,7 +14,7 @@ list
 unbook exp A/C --n3 --force
 n
 unbook exp A/C --n3 --reltop --force --noconf
-list
+list --nocolor
 book exp A/B --n4 --reltop --noconf
 list > TempText
 confirm > TempText2
