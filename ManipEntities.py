@@ -5,9 +5,11 @@ import Entities
 import yaml
 import textwrap
 import copy
+import BasicUtils as BU
 from BasicUtils import errprint, conprint
 from collections import Counter
 import colorama as cr
+
 
 def UnBookEntity(Entities2Unbook, NewEntityData):
     '''
@@ -428,6 +430,81 @@ def getTreeFromNewEntities(NewEntityData, CurrentEntityData=[]):
             # Entity.Type is equal to Experiment necessarily
             TreeDict[ParentEntity].append(Entity)
 
+    return TreeDict
+
+
+def getEntityID(RepStr, TopDir, CurrentEntityData):
+    """
+    This function takes a string RepStr that is representative of the Entity that
+    you want to do something about. It then gets the corresponding entity. The
+    RepStr can Either be an ID or a Path.
+
+    If it is a Path then the entity corresponding to the DIRECTORY (Not experiments)
+    having that path will be returned
+    """
+
+    isID = False
+    isPath = False
+    if RepStr.isnumeric():
+        isID = True
+    elif re.match(BU.isValidPathRE, RepStr):
+        isPath = True
+        EntPath = BU.ProcessPath(RepStr, TopDir)
+        if EntPath == '.':
+            EntPath = ''
+    else:
+        errprint("\nInvalid Representative string for entity: {Str}".format(Str=RepStr))
+        raise ValueError
+
+    if isID:
+        try:
+            ReturnEnt = CurrentEntityData[int(RepStr)]
+        except IndexError:
+            errprint("\nEntity with ID {EntID} Has not been booked.".format(EntID=RepStr))
+            raise
+    elif isPath:
+        try:
+            EntPaths = [E.Path for E in CurrentEntityData]
+            ReturnEnt = CurrentEntityData[EntPaths.index(EntPath)]
+        except ValueError:
+            errprint("\nEntity with Path {EntPath} Has not been booked".format(EntPath=EntPath))
+            raise
+
+    return ReturnEnt.ID
+
+
+def getTreeFromCurrentEntities(CurrentEntityData):
+    """
+    The following parses NewEntityData to create a tree-like structure
+    which can be used to traverse it. The structure of the tree is as
+    below.
+    
+    It is stored as a dictionary as below:
+    
+    TreeDict = {
+                   0:{TopLevelEntity},
+                   ParentEntity1ID:[ChildEntities1],
+                   ParentEntity2ID:[ChildEntities2],
+                   .
+                   .
+               }
+    """
+    
+    # Assuming that children come after parents
+    # Construct Tree as dict of {Entity: dict}
+    TreeDict = {0:[]}
+
+    for Entity in CurrentEntityData:
+        
+        # Create key in treedict if Entity is a directory
+        if Entity.Type == 'IntermediateDir':
+            TreeDict[Entity.ID] = {}
+        elif Entity.Type == 'ExperimentDir':
+            TreeDict[Entity.ID] = []
+        
+        # link entity to parent
+        TreeDict[Entity.ParentID].append(Entity)
+        
     return TreeDict
 
 
