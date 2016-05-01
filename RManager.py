@@ -8,6 +8,7 @@ from git import Repo
 from enum import Enum
 import ManipEntities
 import CommitEntities
+import ViewEntities
 import colorama as cr
 from io import StringIO
 
@@ -35,8 +36,8 @@ class RepoManageConsole(Cmd):
     NewEntityData = []
     CurrentEntityData = []
     
-    ValidCommandList = ['book', 'unbook', 'list', 'clear', 'confirm', 'restart', 'exit']
-    AliasList = {}
+    ValidCommandList = ['book', 'unbook', 'list', 'clear', 'confirm', 'restart', 'exit', 'ls']
+    AliasList = {'dir':'ls'}
     
     # This is a Flag. If it is set, then any call to exit will exit
     # without saving the session. This cannot be set by any command.
@@ -489,7 +490,64 @@ class RepoManageConsole(Cmd):
                 self.do_restart("")
             # else:
             #     Do nothing
-    
+
+    def do_ls(self, arg):
+        """
+        Command Syntax:
+
+          ls <ID/Path> --fulltext --dirdetails --filter <regexp>
+
+        """
+
+        FullText = False
+        DirDetails = False
+        RegExp = ""
+        Args = shlex.split(arg)
+        Status = PromptStatus.SUCCESS
+
+        if not Args:
+            errprint("\nYou must enter atleast 1 arguments (see help)")
+            Status = PromptStatus.INVALID_ARG
+        
+        if Status == PromptStatus.SUCCESS:
+            RepStr = Args[0]
+            InsideArg = ''
+            for Arg in Args[1:]:
+                if not InsideArg and Arg.startswith('--'):
+                    if Arg == '--fulltext':
+                        FullText = True
+                        InsideArg = ''
+                    elif Arg == '--dirdetails':
+                        DirDetails = True
+                        InsideArg = ''
+                    elif Arg == '--filter':
+                        InsideArg = '--filter'
+                    else:
+                        errprint("Invalid Option {Opt}".format(Opy=Arg))
+                        Status = PromptStatus.INVALID_ARG
+                elif InsideArg == '--filter':
+                    RegExp = Arg
+                else:
+                    errprint("Could ot make sense of Argument {Arg}".format(Arg=Arg))
+                    Status = PromptStatus.INVALID_ARG
+
+        if Status == PromptStatus.SUCCESS:
+            try:
+                RelEntityID = ManipEntities.getEntityID(RepStr, self.TopLevelDir, self.CurrentEntityData)
+            except:
+                errprint("\nCould not get Entity.")
+                Status = PromptStatus.INVALID_ARG
+
+        if Status == PromptStatus.SUCCESS:
+            outprint(
+                ViewEntities.getDirString(
+                    RelEntityID,
+                    self.CurrentEntityData,
+                    self.TopLevelDir,
+                    RegexFilter=RegExp,
+                    FullText=FullText,
+                    DirDetails=DirDetails))
+
     def precmd(self, line):
         """
         This function processes each line before passing it to the commands.
