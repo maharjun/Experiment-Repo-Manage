@@ -45,6 +45,7 @@ class RepoManageConsole(Cmd):
         'restart',
         'exit',
         'ls',
+        'show',
     ]
     AliasList = {
         'dir':'ls'
@@ -558,6 +559,50 @@ class RepoManageConsole(Cmd):
                     RegexFilter=RegExp,
                     FullText=FullText,
                     DirDetails=DirDetails))
+
+    def do_show(self, arg):
+        """
+        Command Syntax:
+
+          show <ID/Path> --details
+
+        """
+
+        Details = False
+        Args = shlex.split(arg)
+        Status = PromptStatus.SUCCESS
+
+        if not Args:
+            errprint("\nYou must enter atleast 1 arguments (see help)")
+            Status = PromptStatus.INVALID_ARG
+        
+        if Status == PromptStatus.SUCCESS:
+            RepStr = Args[0]
+            for Arg in Args[1:]:
+                if Arg.startswith('--'):
+                    if Arg == '--details':
+                        Details = True
+                    else:
+                        errprint("Invalid Option {Opt}".format(Opt=Arg))
+                        Status = PromptStatus.INVALID_ARG
+                else:
+                    errprint("Could ot make sense of Argument {Arg}".format(Arg=Arg))
+                    Status = PromptStatus.INVALID_ARG
+
+        if Status == PromptStatus.SUCCESS:
+            try:
+                RelEntityID = ManipEntities.getEntityID(RepStr, self.TopLevelDir, self.CurrentEntityData)
+            except:
+                errprint("\nCould not get Entity.")
+                Status = PromptStatus.INVALID_ARG
+
+        if Status == PromptStatus.SUCCESS:
+            outprint(
+                ViewEntities.getShowString(
+                    RelEntityID,
+                    self.CurrentEntityData,
+                    self.TopLevelDir,
+                    Details=Details))
 
     def precmd(self, line):
         """

@@ -245,3 +245,26 @@ def getDirString(EntityID, CurrentEntityList, TopDir, RegexFilter="", FullText=F
         OutputLines.append(getShortListString(ChildEntData, CurrentEntity.Type))
 
     return "\n".join(OutputLines)
+
+
+def getShowString(EntityID, CurrentEntityList, TopDir, Details=False):
+    """
+    This Function returns the string representing the contents of the specified
+    entity. If Details is Mentioned, The Following Details are mentioned as well.
+    
+      ID:
+      ParentID:
+      Type:
+      Path:
+    """
+
+    EntityData = ReadEntityLog(CurrentEntityList[EntityID-1], TopDir)
+    if Details:
+        return getEntityContentStr(
+            EntityData,
+            'ID', 'ParentID', 'Type', 'Path',
+            Color=cr.Fore.GREEN+cr.Style.BRIGHT)
+    else:
+        return getEntityContentStr(
+            EntityData,
+            Color=cr.Fore.GREEN+cr.Style.BRIGHT)
