@@ -66,7 +66,6 @@ Will try to ease this later)
 
 Before the commit procedure, there must be no changes in the working tree / index. (i.e. you would be advised to run reset --hard before you perform bookings in case you have some other changes pending.)
 
-
 ####    High level Algo
 
     Initialize EntityList from Entities.yml file in RepoManagement
@@ -95,3 +94,92 @@ Before the commit procedure, there must be no changes in the working tree / inde
                 read explog.yml into ExpList
             else,
                 ExpList = []
+
+
+###   Editing Algos:
+
+Various features required:
+
+Ability to browse through experiments:
+
+1.  Ability to list IDs and Titles of all experiments in a folder. 
+    (like dir/ls)
+2.  Ability to get the text of a particular experiment or folder 
+    (like git show)
+3.  Ability to edit an experiment. Figure out a way to make this secure. For 
+    now, just enable that any experiment / folder can be edited after printing 
+    a confirmation message.
+
+3 commands required dir/ls, show, edit
+
+
+1.  ls/dir:
+    
+    syntax:
+
+      ls <ID/Path> --fulltext --dirdetails
+
+2.  show:
+    
+    syntax:
+
+      show <ID/Path> --details
+
+3.  edit:
+
+    syntax:
+
+      edit <ID/Path>
+
+####    The ls command.
+
+The ls command has an alias `dir`
+
+dir <ID/Path> --fulltext --dirdetails --filter <regexp>
+
+#####     Output Format
+
+```
+Folder Details
+==============
+
+  ID      : <Directory ID>
+  ParentID:
+  Path    : <Directory Path>
+  Type    : <Directory Type>
+
+# <Directory Title>
+
+<Directory Description content>
+
+Folder Contents
+===============
+<without --fulltext>
+<In case of intermediate directory>
+ID    Folder Name  Folder Title
+<ID1> <Name1>      Title1
+<ID2> <Name2>      Title2
+<ID3> <Name3>      Title3
+
+<In case of Experiment Directory>
+ID    Experiment Title
+<ID1> Title1
+<ID2> Title2
+<ID3> Title3
+
+<with --fulltext>
+
+  ID  :
+  Name: # this line is only there if there is a folder
+  Type: 
+
+# Title
+
+Content
+
+####################################################
+.
+.
+.
+
+```
