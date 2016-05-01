@@ -40,12 +40,9 @@ def getExplogHeader(FolderID, NumberofExps):
     (between ---Start--- and ---End---):
     
     ---Start---
-    
-    - ID         : <The Unique 32-bit ID assigned to Current Experiment>
-      Title      : <blank>
-      Description: |
-      
-    ## End of Experiment <ID> ##################<upto 100 chars>#####
+    ExpFolderID: <Experiment Directory ID>
+    NumberofEntries: <Number of Experiments>
+    ExpEntries: <blank>
     ---End---
     """
     HeaderLines = []
