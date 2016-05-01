@@ -534,7 +534,7 @@ class RepoManageConsole(Cmd):
                     elif Arg == '--filter':
                         InsideArg = '--filter'
                     else:
-                        errprint("Invalid Option {Opt}".format(Opy=Arg))
+                        errprint("Invalid Option {Opt}".format(Opt=Arg))
                         Status = PromptStatus.INVALID_ARG
                 elif InsideArg == '--filter':
                     RegExp = Arg
