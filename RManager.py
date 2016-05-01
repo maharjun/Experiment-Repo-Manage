@@ -36,8 +36,19 @@ class RepoManageConsole(Cmd):
     NewEntityData = []
     CurrentEntityData = []
     
-    ValidCommandList = ['book', 'unbook', 'list', 'clear', 'confirm', 'restart', 'exit', 'ls']
-    AliasList = {'dir':'ls'}
+    ValidCommandList = [
+        'book',
+        'unbook',
+        'list',
+        'clear',
+        'confirm',
+        'restart',
+        'exit',
+        'ls',
+    ]
+    AliasList = {
+        'dir':'ls'
+    }
     
     # This is a Flag. If it is set, then any call to exit will exit
     # without saving the session. This cannot be set by any command.
