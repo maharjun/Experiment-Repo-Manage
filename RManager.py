@@ -36,6 +36,7 @@ class RepoManageConsole(Cmd):
     CurrentEntityData = []
     
     ValidCommandList = ['book', 'unbook', 'list', 'clear', 'confirm', 'restart', 'exit']
+    AliasList = {}
     
     # This is a Flag. If it is set, then any call to exit will exit
     # without saving the session. This cannot be set by any command.
@@ -494,6 +495,9 @@ class RepoManageConsole(Cmd):
         This function processes each line before passing it to the commands.
         Currently this function performs the following function:
         
+        It analyses the command name, checks if it is an alias. If it is, it
+        modifies the line accordingly.
+
         It analyses the line for any specified output redirection and enables
         said redirection before running the command.
         """
@@ -507,6 +511,11 @@ class RepoManageConsole(Cmd):
             outprint(V.args[0])
             line = ""
             Args = []
+
+        # check if command is alias and change name accordingly
+        if Args and Args[0] in self.AliasList:
+            Args[0] = self.AliasList[Args[0]]
+            line = " ".join(Args)
 
         # check if redirection is requested and calculate position of '>'
         isRedir = ('>' in Args)
@@ -632,6 +641,9 @@ class RepoManageConsole(Cmd):
             # if arg is specified then display help for the command specified in arg.
             if arg in self.ValidCommandList:
                 doc = getattr(self, "do_" + arg).__doc__
+                self.stdout.write(textwrap.dedent("%s" % str(doc)))
+            elif arg in self.AliasList:
+                doc = getattr(self, "do_" + self.AliasList[arg]).__doc__
                 self.stdout.write(textwrap.dedent("%s" % str(doc)))
             else:
                 self.stdout.write("\nThe function '%s' is not defined.\n" % arg)
