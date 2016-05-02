@@ -14,7 +14,7 @@ NumberofEntries: <The number of experiment entities stored>
 ExpEntries:
 - ID          : <The Unique 32-bit ID assigned to Current Experiment>
   Title       : <Title Describing Experiment>
-  Description : |
+  Description : |-2
     The Detailed description of the experiment,
     including any special instructions apart from the
     setup script. This is to be written in Markdown 
@@ -42,10 +42,11 @@ ExpEntries:
 ### Format of folderlog.yml
 
 ```yaml
-FolderID: <The Unique ID of the Folder>
-ParentFolderID: <The Unique ID of the Parent Folder>
-FolderTitle: <A short title describing contents>
-FolderDescription: |
+FolderID         : <The Unique ID of the Folder>
+ParentFolderID   : <The Unique ID of the Parent Folder>
+FolderType       : <Either 'IntermediateDir' or ExperimentDir'>
+FolderTitle      : <A short title describing contents>
+FolderDescription: |-2
   The Detailed description of the contents of the folder. Note that
   it should NOT be an element by element description of its contents.
   Rather it should be something that gives an overall description of 
