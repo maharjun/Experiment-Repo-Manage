@@ -1,5 +1,6 @@
 from cmd import Cmd
 import os
+import subprocess
 import shlex
 import re
 import textwrap
@@ -9,12 +10,14 @@ from enum import Enum
 import ManipEntities
 import CommitEntities
 import ViewEntities
+import EditEntities
 import colorama as cr
 from io import StringIO
 
 import BasicUtils as BU
 from BasicUtils import errprint, conprint, outprint
 import subsys
+
 
 class PromptStatus(Enum):
     """
@@ -46,6 +49,7 @@ class RepoManageConsole(Cmd):
         'exit',
         'ls',
         'show',
+        'edit',
     ]
     AliasList = {
         'dir':'ls'
@@ -603,6 +607,101 @@ class RepoManageConsole(Cmd):
                     self.CurrentEntityData,
                     self.TopLevelDir,
                     Details=Details))
+
+    def do_edit(self, arg):
+        """
+        Command syntax:
+
+          edit <ID/Path>
+
+        Opens up an editor where you can edit the current Title/Description
+        of the entity referred to by ID/Path. The editor stored in the EDITOR
+        environment variable is called upon for this purpose.
+        """
+
+        Args = shlex.split(arg)
+        Status = PromptStatus.SUCCESS
+
+        if not Args:
+            errprint("\nYou must enter atleast 1 arguments (see help)")
+            Status = PromptStatus.INVALID_ARG
+
+        if Status == PromptStatus.SUCCESS:
+            RepStr = Args[0]
+            try:
+                RelEntityID = ManipEntities.getEntityID(
+                    RepStr, self.TopLevelDir, self.CurrentEntityData)
+            except:
+                errprint("\nCould Not get element")
+                Status = PromptStatus.INVALID_ARG
+        
+        if Status == PromptStatus.SUCCESS:
+            # Find Text editor to perform edit
+            EditorCommand = os.getenv('EDITOR')
+            if not EditorCommand:
+                if os.name == 'nt':
+                    EditorCommand = 'notepad'
+                else:
+                    print(textwrap.dedent("""
+                        Could not ascertain editor. Set the system environment variable EDITOR
+                        to the command that activates your editor of choice."""))
+                    Status == PromptStatus.INVALID_ARG
+
+        if Status == PromptStatus.SUCCESS:
+            # open text editor to take input and try to edit the entity
+            
+            # important definitions
+            TempFilesDir = os.path.join(self.ThisModuleDir, 'TempFiles')
+            TempFileName = 'desc_'+str(RelEntityID)+'.tmp'
+            TempFilePath = os.path.join(TempFilesDir, TempFileName)
+            RelEntity = self.CurrentEntityData[RelEntityID-1]
+
+            # create temporary directory if not exists
+            if not os.path.isdir(TempFilesDir):
+                    os.mkdir(TempFilesDir)
+
+            # initialize temporary file with previous contents
+            # (if previous contents are nonempty)
+            PrevEntData = ViewEntities.ReadEntityLog(RelEntity, self.TopLevelDir)
+            with open(TempFilePath, 'w') as tf:
+                if PrevEntData['Title']:
+                    tf.write("# {Title}\n".format(Title=PrevEntData['Title']))
+                    tf.write("\n")
+                    tf.write(PrevEntData['Description'])
+                    tf.flush()
+
+            Status = PromptStatus.INVALID_ARG
+            while(Status != PromptStatus.SUCCESS and Status != PromptStatus.ITER_OVER):
+                
+                subprocess.call('{EdCmd} "{FPath}"'.format(EdCmd=EditorCommand, FPath=TempFilePath))
+
+                with open(TempFilePath) as tf:
+                    # do the parsing with `tf` using regular File operations.
+                    # for instance:
+                    ContentString = tf.read()
+
+                try:
+                    EditEntities.EditEntity(
+                        RelEntityID,
+                        self.CurrentEntityData,
+                        self.TopLevelDir,
+                        ContentString)
+                except:
+                    errprint(textwrap.dedent("""
+                        It appears that for some reason, The Edit was unsuccessful. If this was
+                        due to incorrect content, then you may want to try again (The previouly
+                        typed message will be available.)
+                        """))
+                    RetryConf = BU.getNonEmptyInput("Retry (anything else/n)? ")
+                    if RetryConf == 'n':
+                        Status = PromptStatus.ITER_OVER
+                else:
+                    Status = PromptStatus.SUCCESS
+                    os.remove(TempFilePath)
+                    conprint("\nThe Edit of the following Entity was successful: \n")
+                    conprint("     ID: {ID}".format(ID=RelEntity.ID))
+                    conprint("   Path: {Path}".format(Path=RelEntity.Path))
+                    conprint("   Type: {Type}".format(Type=RelEntity.Type))
 
     def precmd(self, line):
         """
