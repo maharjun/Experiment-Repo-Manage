@@ -40,6 +40,7 @@ def ReadEntityLog(Entity, TopDir):
         LogData['ParentID']    = LogData.pop('ParentFolderID')
         LogData['Type']        = LogData.pop('FolderType')
         LogData['Title']       = LogData.pop('FolderTitle')
+        LogData['Title']       = LogData['Title'] if LogData['Title'] else ''
         LogData['Description'] = LogData.pop('FolderDescription')
         LogData['Path']        = Entity.Path
         LogData['Name']        = path.basename(Entity.Path)
@@ -52,6 +53,8 @@ def ReadEntityLog(Entity, TopDir):
             raise
 
         # Add Path, ParentID, Type attribute.
+        # edit Title attribute for None occurrence
+        LogData['Title']       = LogData['Title'] if LogData['Title'] else ''
         LogData['ParentID']    = Entity.ParentID
         LogData['Type']        = 'Experiment'
         LogData['Path']        = Entity.Path
@@ -85,6 +88,9 @@ def ReadChildrenData(Entity, CurrentEntityList, TopDir):
                 )
                 for EData in ChildEntData
             ]
+            # Editing Title to account for None values
+            for Data in ChildEntData:
+                Data['Title'] = Data['Title'] if Data['Title'] else ''
         except:
             errprint(ExplogMissingError(Entity))
             raise
