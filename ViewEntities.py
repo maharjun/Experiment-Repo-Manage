@@ -227,7 +227,7 @@ def getDirString(EntityID, CurrentEntityList, TopDir, RegexFilter="", FullText=F
 
     # Filtering
     if RegexFilter:
-        ChildEntData = [D for D in ChildEntData if re.match(r".*?"+RegexFilter)]
+        ChildEntData = [D for D in ChildEntData if re.match(r".*?"+RegexFilter, D['Title'])]
 
     OutputLines = []
 
