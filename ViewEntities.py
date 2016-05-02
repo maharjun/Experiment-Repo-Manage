@@ -5,7 +5,6 @@ from terminaltables import SingleTable
 import textwrap
 from os import path
 import yaml
-import ipdb
 
 
 def FolderlogMissingError(Entity):
@@ -187,7 +186,6 @@ def getShortListString(EntityDataList, ParentType):
         for E, TableRow in zip(EntityDataList, Table.table_data[1:]):
             TableRow[1] = textwrap.wrap(E['Title'], MaxWidth) if E['Title'] else '<Untitled>'
 
-    ipdb.set_trace()
     return Table.table
 
 
