@@ -1,6 +1,7 @@
 from BasicUtils import errprint
 import re
 import colorama as cr
+from colorclass import Color as ColorStr
 from terminaltables import SingleTable
 import textwrap
 from os import path
@@ -170,7 +171,11 @@ def getShortListString(EntityDataList, ParentType):
         Table.table_data.append(['ID', 'Folder Name', 'Folder Title'])
         # Add all IDs and Names.
         for E in EntityDataList:
-            Table.table_data.append([cr.Fore.YELLOW + str(E['ID']) + cr.Style.RESET_ALL, E['Name'], ""])
+            Table.table_data.append([
+                ColorStr(cr.Fore.YELLOW + str(E['ID']) + cr.Style.RESET_ALL),
+                E['Name'],
+                ""
+            ])
         # Add wrapped Titles
         MaxWidth = Table.column_max_width(2)
         for E, TableRow in zip(EntityDataList, Table.table_data[1:]):
@@ -180,7 +185,10 @@ def getShortListString(EntityDataList, ParentType):
         Table.table_data.append(['ID', 'Experiment Title'])
         # Adding IDs
         for E in EntityDataList:
-            Table.table_data.append([cr.Fore.YELLOW + str(E['ID']) + cr.Style.RESET_ALL, ''])
+            Table.table_data.append([
+                ColorStr(cr.Fore.YELLOW + str(E['ID']) + cr.Style.RESET_ALL),
+                ''
+            ])
         # Adding wrapped Titles
         MaxWidth = Table.column_max_width(1)
         for E, TableRow in zip(EntityDataList, Table.table_data[1:]):
