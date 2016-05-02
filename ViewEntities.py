@@ -52,6 +52,10 @@ def ReadEntityLog(Entity, TopDir):
             errprint(ExplogMissingError(Entity))
             raise
 
+        # select Entry corresponding to current experiment
+        LogData = [x for x in LogData['ExpEntries'] if x['ID'] == Entity.ID]
+        LogData = LogData[0]
+
         # Add Path, ParentID, Type attribute.
         # edit Title attribute for None occurrence
         LogData['Title']       = LogData['Title'] if LogData['Title'] else ''
