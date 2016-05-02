@@ -64,7 +64,7 @@ def getExplogEntry(ExperimentEntity):
 
     - ID         : <The Unique 32-bit ID assigned to Current Experiment>
       Title      : <blank>
-      Description: |
+      Description: |-2
       
     ## End of Experiment <ID> ##################<upto 100 chars>#####
     ---End---
@@ -77,7 +77,7 @@ def getExplogEntry(ExperimentEntity):
     Lines.append("")
     Lines.append("- ID         : {UID}".format(UID=ExperimentEntity.ID))
     Lines.append("  Title      : ")
-    Lines.append("  Description: |")
+    Lines.append("  Description: |-2")
     Lines.append("")
     Lines.append("{0:#<100}".format("## End of Experiment {UID} ".format(UID=ExperimentEntity.ID)))
 
@@ -96,7 +96,7 @@ def getFolderlogEntry(DirectoryEntity):
     ParentFolderID   : <The Unique ID of the Parent Folder>
     FolderType       : <Either 'IntermediateDir' or ExperimentDir'>
     FolderTitle      : <blank>
-    FolderDescription: |
+    FolderDescription: |-2
 
     ---End---
     """
@@ -107,7 +107,7 @@ def getFolderlogEntry(DirectoryEntity):
     Lines.append("ParentFolderID   : {UID}".format(UID=DirectoryEntity.ParentID))
     Lines.append("FolderType       : {Type}".format(Type=DirectoryEntity.Type))
     Lines.append("FolderTitle      : ")
-    Lines.append("FolderDescription: |")
+    Lines.append("FolderDescription: |-2")
 
     return "\n".join(Lines)
 

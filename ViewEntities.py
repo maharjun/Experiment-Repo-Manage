@@ -157,7 +157,7 @@ def getEntityContentStr(EntityData, *args, Color=""):
     ))
 
     # appending content
-    StrippedDescription = EntityData['Description'].strip()
+    StrippedDescription = EntityData['Description'].strip('\n')
     if StrippedDescription:
         OutputLines.append("")
         OutputLines.append(StrippedDescription)
