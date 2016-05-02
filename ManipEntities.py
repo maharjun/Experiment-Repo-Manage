@@ -458,7 +458,7 @@ def getEntityID(RepStr, TopDir, CurrentEntityData):
 
     if isID:
         try:
-            ReturnEnt = CurrentEntityData[int(RepStr)]
+            ReturnEnt = CurrentEntityData[int(RepStr)-1]
         except IndexError:
             errprint("\nEntity with ID {EntID} Has not been booked.".format(EntID=RepStr))
             raise
