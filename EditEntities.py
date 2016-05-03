@@ -59,8 +59,15 @@ def EditEntity(EntityID, CurrentEntityList, TopDir, ContentString):
             "\n{ContentRegex}".format(ContentRegex=isValidContentStr))
         raise ValueError
     else:
-        errprint("\nAborting Edit because of empty content string.")
-        raise ValueError
+        errprint(
+            "\nThe content string is empty. Does this mean that you wish to reset the log"
+            "\ncorresponding to the entity {ID}?".format(ID=EntityID))
+        EditConfirm = BU.getNonEmptyInput("Reset Confirm (<anything else>/n)")
+        if EditConfirm in ['n', 'N']:
+            raise ValueError
+        else:
+            Title = ''
+            Body = ''
 
     # Calculate Entity
     try:
