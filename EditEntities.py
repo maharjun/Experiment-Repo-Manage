@@ -124,7 +124,6 @@ def EditEntity(EntityID, CurrentEntityList, TopDir, ContentString):
     # Evaluate Title
     A = isValidContentRE.match(ContentString)
     if A:
-        import ipdb; ipdb.set_trace()
         Title = A.group(1).strip() if A.group(1) is not None else A.group(2).strip()
         Body = A.group(3).strip('\n')
     elif ContentString:
