@@ -1,3 +1,4 @@
+
 from BasicUtils import errprint
 import re
 import colorama as cr
@@ -189,7 +190,7 @@ def getShortListString(EntityDataList, ParentType):
         # Add wrapped Titles
         MaxWidth = Table.column_max_width(2)
         for E, TableRow in zip(EntityDataList, Table.table_data[1:]):
-            TableRow[2] = textwrap.wrap(E['Title'], MaxWidth) if E['Title'] else '<Untitled>'
+            TableRow[2] = "\n".join(textwrap.wrap(E['Title'], MaxWidth)) if E['Title'] else '<Untitled>'
     else:
         Table.justify_columns = {0:'right', 1:'left'}
         Table.table_data.append(['ID', 'Experiment Title'])
@@ -202,8 +203,8 @@ def getShortListString(EntityDataList, ParentType):
         # Adding wrapped Titles
         MaxWidth = Table.column_max_width(1)
         for E, TableRow in zip(EntityDataList, Table.table_data[1:]):
-            TableRow[1] = textwrap.wrap(E['Title'], MaxWidth) if E['Title'] else '<Untitled>'
-
+            TableRow[1] = "\n".join(textwrap.wrap(E['Title'], MaxWidth)) if E['Title'] else '<Untitled>'
+    
     return Table.table
 
 
