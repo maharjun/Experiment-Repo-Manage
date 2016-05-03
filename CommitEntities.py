@@ -5,6 +5,8 @@ from BasicUtils import conprint, errprint, outprint
 from git import remote
 import ManipEntities
 import Entities
+import LogProcessing as LP
+from LogProcessing import EntityData
 import re
 import textwrap
 
@@ -32,84 +34,6 @@ def getCommitMessage(NewEntityDataWithID):
     
     OutputStr = '\n'.join(OutputStrArr)
     return OutputStr
-
-
-def getExplogHeader(FolderID, NumberofExps):
-    """
-    Gets the header of the explog.yml file. the returned text is as below.
-    (between ---Start--- and ---End---):
-    
-    ---Start---
-    ExpFolderID: <Experiment Directory ID>
-    NumberofEntries: <Number of Experiments>
-    ExpEntries: <blank>
-    ---End---
-    """
-    HeaderLines = []
-    HeaderLines.append("ExpFolderID: {ExpDirID}".format(ExpDirID=FolderID))
-    HeaderLines.append("NumberofEntries: {NumExps}".format(NumExps=NumberofExps))
-    HeaderLines.append("ExpEntries: ")
-
-    return "\n".join(HeaderLines)
-
-
-def getExplogEntry(ExperimentEntity):
-    """
-    This function returns the string corresponding to the entry in
-    explog.yml (empty i.e. without content) corresponding to the
-    above ExperimentEntity. the string it returns is given below
-    (between ---Start--- and ---End---):
-
-    ---Start---
-
-    - ID         : <The Unique 32-bit ID assigned to Current Experiment>
-      Title      : <blank>
-      Description: |-2
-      
-    ## End of Experiment <ID> ##################<upto 100 chars>#####
-    ---End---
-
-    Note that at the end there is no newline
-    """
-
-    Lines = []
-
-    Lines.append("")
-    Lines.append("- ID         : {UID}".format(UID=ExperimentEntity.ID))
-    Lines.append("  Title      : ")
-    Lines.append("  Description: |-2")
-    Lines.append("")
-    Lines.append("{0:#<100}".format("## End of Experiment {UID} ".format(UID=ExperimentEntity.ID)))
-
-    return "\n".join(Lines)
-
-
-def getFolderlogEntry(DirectoryEntity):
-    """
-    This function returns the string corresponding to the entry in
-    folderlog.yml (empty i.e. without content) corresponding to the
-    above ExperimentEntity. the string it returns is given below
-    (between ---Start--- and ---End---):
-
-    ---Start---
-    FolderID         : <The Unique ID of the Folder>
-    ParentFolderID   : <The Unique ID of the Parent Folder>
-    FolderType       : <Either 'IntermediateDir' or ExperimentDir'>
-    FolderTitle      : <blank>
-    FolderDescription: |-2
-
-    ---End---
-    """
-
-    Lines = []
-    
-    Lines.append("FolderID         : {UID}".format(UID=DirectoryEntity.ID))
-    Lines.append("ParentFolderID   : {UID}".format(UID=DirectoryEntity.ParentID))
-    Lines.append("FolderType       : {Type}".format(Type=DirectoryEntity.Type))
-    Lines.append("FolderTitle      : ")
-    Lines.append("FolderDescription: |-2")
-
-    return "\n".join(Lines)
 
 
 def CreateExperiments(NewEntityList, ExperimentRepo):
@@ -171,7 +95,7 @@ def CreateExperiments(NewEntityList, ExperimentRepo):
     PrevText = re.sub("(?<=NumberofEntries: )[0-9]+", str(NewExpCount), PrevText, count=1)
 
     # Now get the text corresponding to all the New entries
-    NewEntries = [getExplogEntry(Ent) for Ent in NewEntityList]
+    NewEntries = [LP.getExperimentEntry(EntityData(Ent)) for Ent in NewEntityList]
     NewEntriesText = "\n".join(NewEntries)
 
     NewText = "\n".join([PrevText, NewEntriesText])
@@ -244,7 +168,7 @@ def CreateDirectory(NewEntity, ExperimentRepo):
         os.mkdir(FullPath)
 
     # create folderlog.yml
-    FolderLogText = getFolderlogEntry(NewEntity)
+    FolderLogText = LP.getFolderEntry(EntityData(NewEntity))
     with open(FolderLogPath, 'w') as FolderLogFout:
         FolderLogFout.write(FolderLogText)
 
@@ -254,7 +178,7 @@ def CreateDirectory(NewEntity, ExperimentRepo):
     if NewEntity.Type == 'ExperimentDir':
         # create explog.yml
         ExplogPath = path.join(FullPath, 'explog.yml')
-        ExplogText = getExplogHeader(NewEntity.ID, 0)
+        ExplogText = LP.getExplogHeader(NewEntity.ID, 0)
 
         with open(ExplogPath, 'w') as ExplogFout:
             ExplogFout.write(ExplogText)

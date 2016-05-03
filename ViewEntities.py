@@ -1,112 +1,13 @@
-
 from BasicUtils import errprint
+import LogProcessing as LP
 import re
 import colorama as cr
 from colorclass import Color as ColorStr
 from terminaltables import SingleTable
 import textwrap
-from os import path
-import yaml
 
 
-def FolderlogMissingError(Entity):
-    pass
-
-
-def ExplogMissingError(Entity):
-    pass
-
-
-def ReadEntityLog(Entity, TopDir):
-
-    EntPath = path.join(TopDir, Entity.Path)
-    
-    if Entity.Type in ['IntermediateDir', 'ExperimentDir']:
-        LogPath = path.join(EntPath, 'folderlog.yml')
-    else:
-        LogPath = path.join(EntPath, 'explog.yml')
-
-    # Open Current Directory folderlog.yml file and read it.
-    if Entity.Type in ['IntermediateDir', 'ExperimentDir']:
-        try:
-            with open(LogPath) as LogIn:
-                LogData = yaml.safe_load(LogIn)
-        except:
-            errprint(FolderlogMissingError(Entity))
-            raise
-
-        # Rename The Keys to make it consistent with any entity.
-        # Add Path attribute.
-        LogData['ID']          = LogData.pop('FolderID')
-        LogData['ParentID']    = LogData.pop('ParentFolderID')
-        LogData['Type']        = LogData.pop('FolderType')
-        LogData['Title']       = LogData.pop('FolderTitle')
-        LogData['Title']       = LogData['Title'] if LogData['Title'] else ''
-        LogData['Description'] = LogData.pop('FolderDescription')
-        LogData['Path']        = Entity.Path
-        LogData['Name']        = path.basename(Entity.Path)
-    else:
-        try:
-            with open(LogPath) as LogIn:
-                LogData = yaml.safe_load(LogIn)
-        except:
-            errprint(ExplogMissingError(Entity))
-            raise
-
-        # select Entry corresponding to current experiment
-        LogData = [x for x in LogData['ExpEntries'] if x['ID'] == Entity.ID]
-        LogData = LogData[0]
-
-        # Add Path, ParentID, Type attribute.
-        # edit Title attribute for None occurrence
-        LogData['Title']       = LogData['Title'] if LogData['Title'] else ''
-        LogData['ParentID']    = Entity.ParentID
-        LogData['Type']        = 'Experiment'
-        LogData['Path']        = Entity.Path
-        
-    return LogData
-
-
-def ReadChildrenData(Entity, CurrentEntityList, TopDir):
-
-    if Entity.Type not in ['IntermediateDir', 'ExperimentDir']:
-        errprint("\nEntity with ID {EntityID} is not a directory".format(EntityID=Entity.ID))
-        raise ValueError
-    elif Entity.Type == 'IntermediateDir':
-        # Get List of Children
-        ChildEntities = [E for E in CurrentEntityList if E.ParentID == Entity.ID]
-        # get data by reading folderlogs
-        ChildEntData = [ReadEntityLog(E, TopDir) for E in ChildEntities]
-    else:
-        ExpLogPath = path.join(TopDir, Entity.Path, 'explog.yml')
-        try:
-            with open(ExpLogPath) as ExpLogIn:
-                ExpLogYAMLData = yaml.safe_load(ExpLogIn)
-            ChildEntData = ExpLogYAMLData['ExpEntries']
-            # adding other attributes
-            ChildEntData = [
-                dict(
-                    **EData,
-                    ParentID=Entity.ID,
-                    Type='Experiment',
-                    Path=Entity.Path
-                )
-                for EData in ChildEntData
-            ]
-            # Editing Title to account for None values
-            for Data in ChildEntData:
-                Data['Title'] = Data['Title'] if Data['Title'] else ''
-        except:
-            errprint(ExplogMissingError(Entity))
-            raise
-
-    if not ChildEntData:
-        ChildEntData = []
-
-    return ChildEntData
-
-
-def getEntityContentStr(EntityData, *args, Color=""):
+def getEntityContentStr(EntData, *args, Color=""):
     """
     This returns a string that represents the content of a particular entity. The
     *args represents the metadata that one wishes to add to the string. The possible
@@ -124,15 +25,15 @@ def getEntityContentStr(EntityData, *args, Color=""):
     ---End---
 
     Entity     - The ExpRepoEntity object for which the string is required
-    EntityData - The Dict representing data read from either folderlog.yml or
-                 explog.yml corresponding to the current entity
+    EntData    - The EntityData representing data read from either folderlog.yml
+                 or explog.yml corresponding to the current entity
     Color      - A colorama color prefix with which to print header. "" means
                  no color.
     """
 
     OutputLines = []
     # determine valid metadata
-    if EntityData['Type'] == 'Experiment':
+    if EntData.Type == 'Experiment':
         ValidMetadata = ['ID', 'ParentID', 'Type', 'Path']
     else:
         ValidMetadata = ['ID', 'ParentID', 'Type', 'Name', 'Path']
@@ -142,7 +43,7 @@ def getEntityContentStr(EntityData, *args, Color=""):
     for MetaData in args:
         OutputLines.append("  {MetaDataKey}: {MetaDataValue}".format(
             MetaDataKey=MetaData,
-            MetaDataValue=EntityData[MetaData]
+            MetaDataValue=EntData.get(MetaData)
         ))
     if args:
         OutputLines.append("")
@@ -153,12 +54,12 @@ def getEntityContentStr(EntityData, *args, Color=""):
 
     OutputLines.append("# {ColorPrefix}{TitleString}{ColorSuffix}".format(
         ColorPrefix=ColorPrefix,
-        TitleString=EntityData['Title'] if EntityData['Title'] else '<untitled>',
+        TitleString=EntData.Title if EntData.Title else '<untitled>',
         ColorSuffix=ColorSuffix
     ))
 
     # appending content
-    StrippedDescription = EntityData['Description'].strip('\n')
+    StrippedDescription = EntData.Description.strip('\n')
     if StrippedDescription:
         OutputLines.append("")
         OutputLines.append(StrippedDescription)
@@ -183,27 +84,27 @@ def getShortListString(EntityDataList, ParentType):
         # Add all IDs and Names.
         for E in EntityDataList:
             Table.table_data.append([
-                ColorStr(cr.Fore.YELLOW + str(E['ID']) + cr.Style.RESET_ALL),
-                E['Name'],
+                ColorStr(cr.Fore.YELLOW + str(E.ID) + cr.Style.RESET_ALL),
+                E.Name,
                 ""
             ])
         # Add wrapped Titles
         MaxWidth = Table.column_max_width(2)
         for E, TableRow in zip(EntityDataList, Table.table_data[1:]):
-            TableRow[2] = "\n".join(textwrap.wrap(E['Title'], MaxWidth)) if E['Title'] else '<Untitled>'
+            TableRow[2] = "\n".join(textwrap.wrap(E.Title, MaxWidth)) if E.Title else '<Untitled>'
     else:
         Table.justify_columns = {0:'right', 1:'left'}
         Table.table_data.append(['ID', 'Experiment Title'])
         # Adding IDs
         for E in EntityDataList:
             Table.table_data.append([
-                ColorStr(cr.Fore.YELLOW + str(E['ID']) + cr.Style.RESET_ALL),
+                ColorStr(cr.Fore.YELLOW + str(E.ID) + cr.Style.RESET_ALL),
                 ''
             ])
         # Adding wrapped Titles
         MaxWidth = Table.column_max_width(1)
         for E, TableRow in zip(EntityDataList, Table.table_data[1:]):
-            TableRow[1] = "\n".join(textwrap.wrap(E['Title'], MaxWidth)) if E['Title'] else '<Untitled>'
+            TableRow[1] = "\n".join(textwrap.wrap(E.Title, MaxWidth)) if E.Title else '<Untitled>'
     
     return Table.table
 
@@ -227,8 +128,8 @@ def getDirString(EntityID, CurrentEntityList, TopDir, RegexFilter="", FullText=F
     if CurrentEntity.Type not in ['IntermediateDir', 'ExperimentDir']:
         errprint("\nEntity with ID {EntityID} is not a directory.".format(EntityID=EntityID))
 
-    DirData = ReadEntityLog(CurrentEntity, TopDir)
-    ChildEntData = ReadChildrenData(CurrentEntity, CurrentEntityList, TopDir)
+    DirData = LP.ReadEntityLog(CurrentEntity, TopDir)
+    ChildEntData = LP.ReadChildrenData(CurrentEntity, CurrentEntityList, TopDir)
 
     # Filtering
     if RegexFilter:
@@ -275,13 +176,13 @@ def getShowString(EntityID, CurrentEntityList, TopDir, Details=False):
       Path:
     """
 
-    EntityData = ReadEntityLog(CurrentEntityList[EntityID-1], TopDir)
+    CurrEntityData = LP.ReadEntityLog(CurrentEntityList[EntityID-1], TopDir)
     if Details:
         return getEntityContentStr(
-            EntityData,
+            CurrEntityData,
             'ID', 'ParentID', 'Type', 'Path',
             Color=cr.Fore.GREEN+cr.Style.BRIGHT)
     else:
         return getEntityContentStr(
-            EntityData,
+            CurrEntityData,
             Color=cr.Fore.GREEN+cr.Style.BRIGHT)

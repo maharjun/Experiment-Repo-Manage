@@ -4,13 +4,14 @@ import subprocess
 import shlex
 import re
 import textwrap
-import Entities
 from git import Repo
 from enum import Enum
 import ManipEntities
 import CommitEntities
 import ViewEntities
 import EditEntities
+import Entities
+import LogProcessing
 import colorama as cr
 from io import StringIO
 
@@ -662,12 +663,12 @@ class RepoManageConsole(Cmd):
 
             # initialize temporary file with previous contents
             # (if previous contents are nonempty)
-            PrevEntData = ViewEntities.ReadEntityLog(RelEntity, self.TopLevelDir)
+            PrevEntData = LogProcessing.ReadEntityLog(RelEntity, self.TopLevelDir)
             with open(TempFilePath, 'w') as tf:
-                if PrevEntData['Title']:
-                    tf.write("# {Title}\n".format(Title=PrevEntData['Title']))
+                if PrevEntData.Title:
+                    tf.write("# {Title}\n".format(Title=PrevEntData.Title))
                     tf.write("\n")
-                    tf.write(PrevEntData['Description'])
+                    tf.write(PrevEntData.Description)
                     tf.flush()
 
             Status = PromptStatus.INVALID_ARG
