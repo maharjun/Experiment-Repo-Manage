@@ -167,7 +167,8 @@ def EditEntity(EntityID, CurrentEntityList, TopDir, ContentString):
         EntityData['Description'] = Body
 
         # Rejoin the explog text around the new (edited) experiment entity
-        NewExpLogText = getExperimentEntry(EntityData).join(SplitExpLogText)
+        NewExpLogEntry = getExperimentEntry(EntityData)
+        NewExpLogText  = NewExpLogEntry.join(SplitExpLogText)
 
         # Write the new data
         try:
