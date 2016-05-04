@@ -55,6 +55,9 @@ Temporary Items
 # ignore the Visual studio directory
 /.vs/*
 
+# ignore config file
+/config.yml
+
 # ignore files in TempFiles directory
 /TempFiles
 

@@ -4,6 +4,7 @@ import subprocess
 import shlex
 import re
 import textwrap
+import yaml
 from git import Repo
 from enum import Enum
 import ManipEntities
@@ -40,6 +41,8 @@ class RepoManageConsole(Cmd):
     NewEntityData = []
     CurrentEntityData = []
     
+    ConfigVars = {'topdir':''}
+    ConfigVarMapping = {'topdir':'TopLevelDir'}
     ValidCommandList = [
         'book',
         'unbook',
@@ -796,26 +799,36 @@ class RepoManageConsole(Cmd):
 
     def preloop(self):
         self.ThisModuleDir = BU.getFrameDir()
-        self.TopLevelDir = os.path.normpath(os.path.join(self.ThisModuleDir, '..'))
         
-        # Read Currently confirmed Entity Data
-        CurrEntityDataFile = os.path.join(self.TopLevelDir, 'EntityData.yml')
-        if os.path.isfile(CurrEntityDataFile):
-            with open(CurrEntityDataFile, 'r') as Fin:
-                self.CurrentEntityData = ManipEntities.getEntityDataFromStream(Fin)
-        else:
-            errprint('The file EntityData.yml is missing')
-            self.CurrentEntityData = None
-        
-        # See if read was successful
-        if self.CurrentEntityData is None:
-            errprint(
-                'It appears that we cannot read the urrently booked Entities\n',
-                'from the file {0}. INITIALIZATION FAILED\n'.format('EntityData.yml')
-            )
+        # read in config variables
+        self.init_config()
+        try:
+            self.read_config()
+        except KeyError:
+            errprint("\nCould not configure successfully. INITIALIZATION FAILED")
             self.InitSuccessful = False
+        except:
+            pass
+
+        # Read Currently confirmed Entity Data
+        if self.InitSuccessful:
+            CurrEntityDataFile = os.path.join(self.TopLevelDir, 'EntityData.yml')
+            if os.path.isfile(CurrEntityDataFile):
+                with open(CurrEntityDataFile, 'r') as Fin:
+                    self.CurrentEntityData = ManipEntities.getEntityDataFromStream(Fin)
+            else:
+                errprint('The file EntityData.yml is missing')
+                self.CurrentEntityData = None
         
-        # try to read the Current Session (new unconfirmed) Entities
+            # See if read was successful
+            if self.CurrentEntityData is None:
+                errprint(
+                    'It appears that we cannot read the urrently booked Entities\n' +
+                    'from the file {0}. INITIALIZATION FAILED\n'.format('EntityData.yml')
+                )
+                self.InitSuccessful = False
+        
+        # Try to read the Current Session (new unconfirmed) Entities
         NewEntityDataFile  = os.path.join(self.ThisModuleDir, 'TempFiles/CurrentSession.yml')
         if self.InitSuccessful and os.path.isfile(NewEntityDataFile):
             with open(NewEntityDataFile, 'r') as Fin:
@@ -849,6 +862,91 @@ class RepoManageConsole(Cmd):
         errprint("\nThe command '{Cmd}' is undefined".format(Cmd=Command))
         self.do_help("")
     
+    def do_config(self, arg):
+        """
+        Command Syntax:
+
+            config <varname> [<varvalue>]
+
+        This function is used to configure the variables in RepoManageConsole.
+        The argument <varname is MANDATORY. Currently, the variables that can be
+        configured are:
+
+        1.  topdir -
+
+            This variable represents the path of the Top Directory of the experiment
+            repository to be managed.
+
+        If <varvalue> is not specified, then the current value of the variable in
+        varname is printed.
+        """
+        
+        Args = shlex.split(arg)
+        Status = PromptStatus.SUCCESS
+        if not Args:
+            errprint("\nYou must enter atleast 1 arguments (see help)")
+            Status = PromptStatus.INVALID_ARG
+
+        isParamRequest = False
+        isParamAssignment = True
+        
+        # parse arguments
+        if len(Args) == 1:
+            isParamRequest = True
+            isParamAssignment = False
+        else:
+            isParamRequest = False
+            isParamAssignment = True
+
+        if isParamRequest:
+            # in this case it is a config parameter request and will be
+            # processed as such
+            ConfigKey = Args[0]
+            if ConfigKey in self.ConfigVars:
+                outprint("\n" + self.ConfigVars[ConfigKey])
+            else:
+                outprint(
+                    "\n{ConfigKey} is not a valid configuration key".format(ConfigKey=ConfigKey))
+
+        if isParamAssignment:
+            # Here we parse the argument lists into key value pairs
+            PrevCommand = None
+            ConfigDict = {}
+            for Arg in Args:
+                if not PrevCommand:
+                    ConfigDict[Arg] = None
+                    PrevCommand = Arg
+                else:
+                    ConfigDict[PrevCommand] = Arg
+                    PrevCommand = None
+
+            if PrevCommand:
+                errprint("\nValue is not specified for configuration key '{ConfigKey}'")
+                Status = PromptStatus.INVALID_ARG
+
+            if Status == PromptStatus.SUCCESS:
+                # Perform config assignment
+                try:
+                    self.assign_config(ConfigDict)
+                except KeyError as KE:
+                    errprint(textwrap.dedent("""
+                        There exists no config key by the name '{KeyName}'. look at the help of
+                        'config' command\
+                    """).format(KeyName=KE.args[0]))
+                    Status = PromptStatus.INVALID_ARG
+                except ValueError:
+                    Status = PromptStatus.INVALID_ARG
+
+            if Status == PromptStatus.SUCCESS:
+                # Perform commit write, clear and restart
+                # this should not result in any problems if the config has
+                # been correct
+                self.write_config()
+                self.do_clear('--noconf')
+                self.do_restart("")
+            else:
+                errprint("\nThe config failed")
+
     def do_help(self, arg):
         'List available commands with "help" or detailed help with "help cmd".'
         if arg:
@@ -900,6 +998,65 @@ class RepoManageConsole(Cmd):
         conprint('(Exiting)')
         return True
 
+    def assign_config(self, configdict):
+        for PropertyName in configdict:
+            PropertyValue = configdict[PropertyName]
+            # Validate / Process Variable Values
+            if PropertyName == 'topdir':
+                # check validity of directory and convert to absolute path
+                if not os.path.isdir(PropertyValue):
+                    errprint("The Directory {DirName} does not exist.".format(DirName=PropertyValue))
+                    raise ValueError
+                else:
+                    PropertyValue = os.path.abspath(PropertyValue)
+            else:
+                raise KeyError(PropertyName)
+            # assign Set Variables and restart
+            if PropertyName == 'topdir':
+                self.ConfigVars['topdir'] = PropertyValue
+                setattr(self, self.ConfigVarMapping['topdir'], PropertyValue)
+                self.do_clear('--noconf')
+            
+    def write_config(self):
+        """
+        This functions writes down the config variables into the config.yml file
+        """
+
+        with open(os.path.join(self.ThisModuleDir, "config.yml"), 'w') as ConfigOut:
+            for i in self.ConfigVars:
+                ConfigOut.write(i)
+                ConfigOut.write(': ')
+                ConfigOut.write(self.ConfigVars[i])
+                ConfigOut.write('\n')
+
+    def init_config(self):
+        """
+        Initialize config to default values:
+        """
+        self.ConfigVars = {
+            'topdir':''
+        }
+
+    def read_config(self):
+        """
+        This function reads the config file and performs assignment
+        """
+        try:
+            with open(os.path.join(self.ThisModuleDir, "config.yml")) as ConfigOut:
+                InputConfig = yaml.safe_load(ConfigOut)
+        except:
+            errprint("\nThere appears to be no config file")
+            raise
+
+        if not set(InputConfig.keys()) <= set(self.ConfigVars.keys()):
+            DiffKeys = set(InputConfig.keys()) - set(self.ConfigVars.keys())
+            errprint("\nInvalid config variables in config.yml:")
+            errprint("")
+            for Key in DiffKeys:
+                errprint("  {Key}".format(Key=Key))
+            raise KeyError
+
+        self.assign_config(InputConfig)
 
 if __name__ == '__main__':
     cr.init()
