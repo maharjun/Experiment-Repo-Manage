@@ -46,6 +46,8 @@ Temporary Items
 # python bytecode compilations
 /**/*.pyc
 /**/*.pyo
+
+# ignore all untitled files
 /**/untitled*
 
 # ignore all visual studio files
