@@ -173,7 +173,7 @@ def CreateDirectory(NewEntity, ExperimentRepo):
         FolderLogFout.write(FolderLogText)
 
     # add folderlog.yml to index
-    ExperimentRepo.index.add([FolderLogPath])
+    ExperimentRepo.git.add(FolderLogPath)
 
     if NewEntity.Type == 'ExperimentDir':
         # create explog.yml
@@ -184,7 +184,7 @@ def CreateDirectory(NewEntity, ExperimentRepo):
             ExplogFout.write(ExplogText)
 
         # add explog.yml to index
-        ExperimentRepo.index.add([ExplogPath])
+        ExperimentRepo.git.add(ExplogPath)
 
 
 def CreateContents(Contents, ParentType, ExperimentRepo):
@@ -230,7 +230,7 @@ def PrepareTreeandIndex(CurrentEntityData, NewEntityDataWithID, ExperimentRepo):
         TopDir = ExperimentRepo.working_tree_dir
         with open(path.join(TopDir, 'EntityData.yml'), 'w') as Fout:
             Entities.FlushData(Fout, NewEntitiesAppended)
-        ExperimentRepo.index.add(['EntityData.yml'])
+        ExperimentRepo.git.add('EntityData.yml')
     except:
         errprint("\nEntity Creation Failed.")
         raise
