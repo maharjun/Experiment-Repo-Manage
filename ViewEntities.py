@@ -84,7 +84,7 @@ def getShortListString(EntityDataList, ParentType):
         # Add all IDs and Names.
         for E in EntityDataList:
             Table.table_data.append([
-                ColorStr(cr.Fore.YELLOW + str(E.ID) + cr.Style.RESET_ALL),
+                ColorStr(cr.Fore.GREEN + cr.Style.BRIGHT + str(E.ID) + cr.Style.RESET_ALL),
                 E.Name,
                 ""
             ])
@@ -98,7 +98,7 @@ def getShortListString(EntityDataList, ParentType):
         # Adding IDs
         for E in EntityDataList:
             Table.table_data.append([
-                ColorStr(cr.Fore.YELLOW + str(E.ID) + cr.Style.RESET_ALL),
+                ColorStr(cr.Fore.GREEN + cr.Style.BRIGHT + str(E.ID) + cr.Style.RESET_ALL),
                 ''
             ])
         # Adding wrapped Titles
@@ -155,7 +155,7 @@ def getDirString(EntityID, CurrentEntityList, TopDir, RegexFilter="", FullText=F
     if FullText:
         for D in ChildEntData:
             OutputLines.append('')
-            OutputLines.append(getEntityContentStr(D, 'ID', 'Name', 'Type', Color=cr.Fore.YELLOW))
+            OutputLines.append(getEntityContentStr(D, 'ID', 'Name', 'Type', Color=cr.Fore.YELLOW + cr.Style.BRIGHT))
             OutputLines.append('')
             OutputLines.append('#'*80)
     else:

@@ -244,7 +244,7 @@ def getSessionBookingsString(NewEntityData, Color=False):
         ParentType = 'IntermediateDir' if type(EntityTree) is dict else 'ExperimentDir'
 
         # initializing color ANSI Seqs
-        ColorPrefix = cr.Fore.YELLOW if Color and not IsInit else ""
+        ColorPrefix = cr.Fore.GREEN + cr.Style.BRIGHT if Color and not IsInit else ""
         ColorSuffix = cr.Style.RESET_ALL if Color and not IsInit else ""
 
         if ParentType == 'IntermediateDir':

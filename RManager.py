@@ -7,15 +7,16 @@ import textwrap
 import yaml
 from git import Repo
 from enum import Enum
+
 import ManipEntities
 import CommitEntities
 import ViewEntities
 import EditEntities
 import Entities
 import LogProcessing
-import colorama as cr
 from io import StringIO
 
+import colorama as cr
 import BasicUtils as BU
 from BasicUtils import errprint, conprint, outprint
 import subsys
@@ -34,7 +35,7 @@ class PromptStatus(Enum):
 
 class RepoManageConsole(Cmd):
     intro = 'Welcome to the Repositry Management shell. Type help or ? to list commands.'
-    prompt = cr.Fore.RED + cr.Style.BRIGHT + 'command> '
+    prompt = cr.Fore.RED + cr.Style.BRIGHT + 'command' + cr.Style.RESET_ALL + '> '
     
     TopLevelDir = ''
     ThisModuleDir = ''
@@ -774,7 +775,7 @@ class RepoManageConsole(Cmd):
             TempStream = StringIO()
             subsys.stdout = TempStream
             try:
-                RetValue = Cmd.onecmd(self, line)
+                RetValue = super().onecmd(line)
                 OutputString = BU.stripAnsiSeqs(TempStream.getvalue())
                 try:
                     with open(self.RedirFilePath, 'w') as Fout:
@@ -787,7 +788,7 @@ class RepoManageConsole(Cmd):
                 TempStream.close()
                 subsys.stdout = PrevStdOut
         else:
-            RetValue = Cmd.onecmd(self, line)
+            RetValue = super().onecmd(line)
 
         return RetValue
     
@@ -962,7 +963,7 @@ class RepoManageConsole(Cmd):
             return
         else:
             # if arg is not specified display the default Cmd help instructions
-            Cmd.do_help(self, "")
+            super().do_help("")
     
     def do_restart(self, arg):
         """
@@ -1061,4 +1062,6 @@ class RepoManageConsole(Cmd):
 if __name__ == '__main__':
     cr.init()
     subsys.init()
-    RepoManageConsole(stdin=subsys.stdin, stdout=subsys.stdcon).cmdloop()
+    Console = RepoManageConsole(stdin=subsys.stdin, stdout=subsys.stdcon)
+    Console.use_rawinput = False
+    Console.cmdloop()
