@@ -126,7 +126,7 @@ def getFrameDir():
     """
     CurrentFrameStack = inspect.stack()
     if len(CurrentFrameStack) > 1:
-        ParentFrame   = CurrentFrameStack[1].frame
+        ParentFrame   = CurrentFrameStack[1][0]
         FrameFileName = inspect.getframeinfo(ParentFrame).filename
         FrameDir      = os.path.dirname(os.path.abspath(FrameFileName))
     else:

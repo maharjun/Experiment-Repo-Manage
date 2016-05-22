@@ -1,3 +1,5 @@
+#!/usr/bin/python3 
+
 from cmd import Cmd
 import os
 import subprocess
@@ -679,7 +681,7 @@ class RepoManageConsole(Cmd):
             Status = PromptStatus.INVALID_ARG
             while(Status != PromptStatus.SUCCESS and Status != PromptStatus.ITER_OVER):
                 
-                subprocess.call('{EdCmd} "{FPath}"'.format(EdCmd=EditorCommand, FPath=TempFilePath))
+                subprocess.call(shlex.split(EditorCommand) + [TempFilePath])
 
                 with open(TempFilePath) as tf:
                     # do the parsing with `tf` using regular File operations.
