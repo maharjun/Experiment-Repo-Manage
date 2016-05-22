@@ -50,6 +50,7 @@ class RepoManageConsole(Cmd):
         'list',
         'clear',
         'confirm',
+        'config',
         'restart',
         'exit',
         'ls',
