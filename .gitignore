@@ -63,6 +63,11 @@ Temporary Items
 # ignore files in TempFiles directory
 /TempFiles
 
+# ignore build and install folders
+/*.egg-info
+/build
+/dist
+
 # ignore file used to store temporary code
 /TempCode.py
 
