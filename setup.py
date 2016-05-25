@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name="RepoManagement",
-    version="0.1",
+    version="0.1.1",
     packages=['RepoManagement'],
     author="Arjun Rao",
     author_email="arjun210493@gmail.com",

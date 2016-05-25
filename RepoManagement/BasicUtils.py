@@ -2,6 +2,7 @@ import os
 import re
 from RepoManagement import subsys
 import inspect
+from contextlib import contextmanager
 
 isValidPathREStr = r"""
     ^
@@ -133,3 +134,12 @@ def getFrameDir():
         FrameDir = None
 
     return FrameDir
+
+@contextmanager
+def changedDir(NewDir):
+    PrevDir = os.getcwd()
+    os.chdir(NewDir)
+    try:
+        yield
+    finally:
+        os.chdir(PrevDir)
