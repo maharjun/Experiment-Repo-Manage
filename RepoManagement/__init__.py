@@ -5,7 +5,6 @@ from RepoManagement import Entities
 from RepoManagement import LogProcessing
 from RepoManagement import ManipEntities
 from RepoManagement import RManager
-from RepoManagement import RSACode
 from RepoManagement import subsys
 from RepoManagement import ViewEntities
 from RepoManagement.GetRootDirectory import getRootDirectory
