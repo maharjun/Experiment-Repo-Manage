@@ -1,5 +1,3 @@
-#!/usr/bin/python3 
-
 from cmd import Cmd
 import os
 import subprocess
@@ -1062,7 +1060,8 @@ class RepoManageConsole(Cmd):
 
         self.assign_config(InputConfig)
 
-if __name__ == '__main__':
+
+def run_console_main():
     cr.init()
     subsys.init()
     Console = RepoManageConsole(stdin=subsys.stdin, stdout=subsys.stdcon)
