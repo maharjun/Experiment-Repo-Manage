@@ -1,5 +1,5 @@
 import os
-from BasicUtils import errprint
+from RepoManagement.BasicUtils import errprint
 
 
 def getRootDirectory(CurrentDirectory=None):

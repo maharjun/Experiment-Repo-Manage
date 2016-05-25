@@ -1,5 +1,5 @@
-from BasicUtils import errprint
-import LogProcessing as LP
+from RepoManagement.BasicUtils import errprint
+from RepoManagement import LogProcessing as LP
 import re
 import colorama as cr
 from colorclass import Color as ColorStr

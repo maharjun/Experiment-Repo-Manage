@@ -8,18 +8,18 @@ import yaml
 from git import Repo
 from enum import Enum
 
-import ManipEntities
-import CommitEntities
-import ViewEntities
-import EditEntities
-import Entities
-import LogProcessing
+from RepoManagement import ManipEntities
+from RepoManagement import CommitEntities
+from RepoManagement import ViewEntities
+from RepoManagement import EditEntities
+from RepoManagement import Entities
+from RepoManagement import LogProcessing
 from io import StringIO
 
 import colorama as cr
-import BasicUtils as BU
-from BasicUtils import errprint, conprint, outprint
-import subsys
+from RepoManagement import BasicUtils as BU
+from RepoManagement.BasicUtils import errprint, conprint, outprint
+from RepoManagement import subsys
 
 
 class PromptStatus(Enum):

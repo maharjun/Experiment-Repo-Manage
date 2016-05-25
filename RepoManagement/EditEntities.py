@@ -1,8 +1,8 @@
 import re
 from os import path
-import BasicUtils as BU
-import LogProcessing as LP
-from BasicUtils import errprint
+from RepoManagement import BasicUtils as BU
+from RepoManagement import LogProcessing as LP
+from RepoManagement.BasicUtils import errprint
 
 isValidContentStr = r"""
     # A Valid Entity string is as:

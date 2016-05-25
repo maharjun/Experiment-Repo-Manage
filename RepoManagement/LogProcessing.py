@@ -1,5 +1,5 @@
 from os import path
-from BasicUtils import errprint
+from RepoManagement.BasicUtils import errprint
 import yaml
 
 

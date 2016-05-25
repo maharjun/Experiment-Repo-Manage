@@ -1,11 +1,11 @@
-import BasicUtils
-import CommitEntities
-import EditEntities
-import Entities
-import LogProcessing
-import ManipEntities
-import RManager
-import RSACode
-import subsys
-import ViewEntities
-from GetRootDirectory import getRootDirectory
+from RepoManagement import BasicUtils
+from RepoManagement import CommitEntities
+from RepoManagement import EditEntities
+from RepoManagement import Entities
+from RepoManagement import LogProcessing
+from RepoManagement import ManipEntities
+from RepoManagement import RManager
+from RepoManagement import RSACode
+from RepoManagement import subsys
+from RepoManagement import ViewEntities
+from RepoManagement.GetRootDirectory import getRootDirectory

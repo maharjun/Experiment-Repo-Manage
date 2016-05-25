@@ -1,12 +1,12 @@
 import os
 from os import path
 import re
-import Entities
+from RepoManagement import Entities
 import yaml
 import textwrap
 import copy
-import BasicUtils as BU
-from BasicUtils import errprint, conprint
+from RepoManagement import BasicUtils as BU
+from RepoManagement.BasicUtils import errprint, conprint
 from collections import Counter
 import colorama as cr
 

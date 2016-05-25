@@ -1,6 +1,6 @@
 import os
 import re
-import subsys
+from RepoManagement import subsys
 import inspect
 
 isValidPathREStr = r"""

@@ -1,12 +1,12 @@
 from os import path
 import os
 
-from BasicUtils import conprint, errprint, outprint
+from RepoManagement.BasicUtils import conprint, errprint, outprint
 from git import remote
-import ManipEntities
-import Entities
-import LogProcessing as LP
-from LogProcessing import EntityData
+from RepoManagement import ManipEntities
+from RepoManagement import Entities
+from RepoManagement import LogProcessing as LP
+from RepoManagement.LogProcessing import EntityData
 import re
 import textwrap
 
