@@ -14,6 +14,7 @@ from RepoManagement import ViewEntities
 from RepoManagement import EditEntities
 from RepoManagement import Entities
 from RepoManagement import LogProcessing
+from RepoManagement.GetRootDirectory import getRootDirectory
 from io import StringIO
 
 import colorama as cr
@@ -801,16 +802,20 @@ class RepoManageConsole(Cmd):
 
     def preloop(self):
         self.ThisModuleDir = BU.getFrameDir()
-        
-        # read in config variables
-        self.init_config()
         try:
-            self.read_config()
-        except KeyError:
-            errprint("\nCould not configure successfully. INITIALIZATION FAILED")
+            self.TopLevelDir = getRootDirectory(os.getcwd())
+        except ValueError:
             self.InitSuccessful = False
-        except:
-            pass
+
+        # # read in config variables
+        # self.init_config()
+        # try:
+        #     self.read_config()
+        # except KeyError:
+        #     errprint("\nCould not configure successfully. INITIALIZATION FAILED")
+        #     self.InitSuccessful = False
+        # except:
+        #     pass
 
         # Read Currently confirmed Entity Data
         if self.InitSuccessful:

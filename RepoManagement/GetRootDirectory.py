@@ -28,7 +28,7 @@ def getRootDirectory(CurrentDirectory=None):
     while not ContainsEntityData and not ReachedRoot:
         if PrevDirectoryTemp == CurrentDirectoryTemp:
             ReachedRoot = True
-        EntityDataPath = os.path.join(CurrentDirectoryTemp, 'EnityData.yml')
+        EntityDataPath = os.path.join(CurrentDirectoryTemp, 'EntityData.yml')
         ContainsEntityData = os.path.isfile(os.path.join(CurrentDirectoryTemp, EntityDataPath))
         PrevDirectoryTemp = CurrentDirectoryTemp
         CurrentDirectoryTemp = os.path.normpath(os.path.join(CurrentDirectoryTemp, '..'))
@@ -38,5 +38,6 @@ def getRootDirectory(CurrentDirectory=None):
         errprint("")
         errprint("  {CurrentDir}".format(CurrentDir=CurrentDirectory))
         errprint("\nIs not a subdirectory of any managed experiment repository")
+        raise(ValueError)
     else:
         return PrevDirectoryTemp
