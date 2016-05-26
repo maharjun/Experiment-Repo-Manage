@@ -652,7 +652,7 @@ class RepoManageConsole(Cmd):
                     print(textwrap.dedent("""
                         Could not ascertain editor. Set the system environment variable EDITOR
                         to the command that activates your editor of choice."""))
-                    Status == PromptStatus.INVALID_ARG
+                    Status = PromptStatus.INVALID_ARG
 
         if Status == PromptStatus.SUCCESS:
             # open text editor to take input and try to edit the entity
