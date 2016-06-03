@@ -7,4 +7,5 @@ from RepoManagement import ManipEntities
 from RepoManagement import RManager
 from RepoManagement import subsys
 from RepoManagement import ViewEntities
+from RepoManagement import SubModuleProcessing
 from RepoManagement.GetRootDirectory import getRootDirectory
