@@ -61,7 +61,7 @@ Temporary Items
 /config.yml
 
 # ignore files in TempFiles directory
-/TempFiles
+/RepoManagement/TempFiles
 
 # ignore build and install folders
 /*.egg-info
